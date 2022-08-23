@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="en"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <title>crawler</title>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+
+    <meta th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+
+<body>
+<div th:replace="fragments/layout.html :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<script th:replace="fragments/layout :: menuScript"></script>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+
+    <button class="tablink" onclick="openPage('search', this, 'add')" id="defaultOpen">گزارش</button>
+    <div sec:authorize="hasRole('ROLE_MANAGER')">
+        <button class="tablink" onclick="openPage('add', this, 'search')">تنظیمات</button>
+    </div>
+
+    <div id="search" class="tabcontent">
+
+
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/search-solid.png}">
+                <label>جست و جو :</label>
+            </div>
+            <div class="card-body card2-body">
+
+                <div class="row">
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="input-search-log-type" class="add-font">نوع :</label>
+                        <select class="form-control add-font" name="log" required
+                                id="input-search-log-type">
+
+                            <option value="all">All</option>
+                            <option value="login">Login Successful/Unsuccessful</option>
+                            <option value="logout">Logout</option>
+                            <option value="locked">Locked/Unlocked User</option>
+                            <option value="enabled">Enabled/Disabled User</option>
+                            <option value="user">Create/Update User</option>
+                            <option value="patch">Create Patch</option>
+                            <option value="NotFound">Not Found Error</option>
+                            <option value="Forbidden">Forbidden Error</option>
+                            <option value="BadRequest">Bad Request Error</option>
+                            <option value="RequestTimeout">Request Timeout Error</option>
+                            <option value="ServiceUnavailable">Service Unavailable Error</option>
+                            <option value="InternalError">Internal Server Error</option>
+
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4 col-sm-4 col-12" id="input-date">
+                        <label for="fromDate" class="add-font">از تاریخ :</label>
+                        <input type="text" name="startDate" autocomplete="off"
+                               style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                               class="range-from-example form-control  add-font"
+                               data-mddatetimepicker="true"
+                               id="fromDate"
+                               value="">
+                    </div>
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="toDate" class="add-font">تا تاریخ :</label>
+                        <input type="text" name="endDate" autocomplete="off"
+                               style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                               class="range-to-example form-control add-font" id="toDate"
+                               value="">
+
+                    </div>
+
+                </div>
+                <div class="row">
+
+                    <div class="form-group float-left col-md-4 col-sm-4 col-12">
+
+                        <label id="btn-search-o" class="btn btn-submit form-control add-font" onclick="getData()">
+                            جست و جو
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-12 col-12 col-sm-12 table-div">
+                    <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600">
+                        <thead>
+                        <tr>
+                            <th scope="col">نام کاربری</th>
+                            <th scope="col">پیام</th>
+                            <th scope="col">فرم/آدرس</th>
+                            <th scope="col">IP</th>
+                            <th scope="col">مرورگر</th>
+                            <th scope="col">تاریخ</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div sec:authorize="hasRole('ROLE_MANAGER')">
+        <div id="add" class="tabcontent">
+
+            <div class="card card2" style="margin-top: 20px">
+                <div class="card-header card2-header">
+                    <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+                    <label>زمان انقضای رمز عبور کاربران</label>
+                </div>
+                <div class="card-body card2-body">
+
+                    <label for="change-expireTime-password" class="add-font"></label>
+                    <div id="change-expireTime-password" class="col-md-12 col-12 col-sm-12 table-div">
+
+                        <form th:action="@{/manager/manage/expire-password}" method="post" role="form">
+                            <div class="row">
+
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label for="input-expire-date-m" class="add-font"
+                                           th:text="${'اعتبار فعلی رمز عبور: ' + setting.getMonthExpirePassword()}"></label>
+                                    <label for="input-expire-date-m" class="add-font">تعداد ماه اعتبار رمز
+                                        عبور: </label>
+                                    <select class="form-control add-font" name="month" required
+                                            id="input-expire-date-m">
+                                        <option value="1">یک ماه</option>
+                                        <option value="2">دو ماه</option>
+                                        <option value="3">سه ماه</option>
+                                        <option value="4">چهار ماه</option>
+                                        <option value="5">پنج ماه</option>
+                                        <option value="6">شش ماه</option>
+                                        <option value="7">هفت ماه</option>
+                                        <option value="8">هشت ماه</option>
+                                        <option value="9">نه ماه</option>
+                                        <option value="10">ده ماه</option>
+                                        <option value="11">یازده ماه</option>
+                                        <option value="12">دوازده ماه</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label for="input-expire-date-m" style="color: white" class="add-font">input-expire-date-month:</label>
+                                    <label for="input-expire-date-m" style="color: white" class="add-font">input-expire-date-month: </label>
+                                    <button id="expire-date-update-btn" type="submit"
+                                            class="btn btn-submit form-control add-font"> بروزرسانی
+                                    </button>
+                                </div>
+
+
+                            </div>
+
+                        </form>
+
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card card2" style="margin-top: 20px">
+                <div class="card-header card2-header">
+                    <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+                    <label>ورود کاربران</label>
+                </div>
+                <div class="card-body card2-body">
+
+                    <label for="change-login-attempts" class="add-font"></label>
+                    <div id="change-login-attempts" class="col-md-12 col-12 col-sm-12 table-div">
+
+                        <form th:action="@{/manager/manage/attempts-login}" method="post" role="form">
+                            <div class="row">
+
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label class="add-font"
+                                           th:text="${'تعداد دفعات ورود ناموفق: ' + setting.getNumberOfAttempts()}"></label>
+                                </div>
+
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label class="add-font"
+                                           th:text="${'مقدار ساعت بلاک بودن کاربر: ' + setting.getLockTime()}"></label>
+                                </div>
+
+
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label for="input-number-f-attempts" class="add-font">تعداد تلاش ناموفق برای
+                                        ورود: </label>
+
+                                    <input type="number" required id="input-number-f-attempts" min="1" max="10"
+                                           name="attemptNumber" class="form-control add-font"
+                                           placeholder="(حداقل 1 و حداکثر 10)">
+
+                                </div>
+
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label for="lock-time-users" class="add-font">مقدار زمان قفل شدن کاربر: </label>
+
+                                    <input type="number" required id="lock-time-users" name="lockTime" min="1" max="72"
+                                           class="form-control add-font" placeholder="(حداقل 1 ساعت و حداکثر 72 ساعت)">
+
+                                </div>
+
+                                <div class="form-group col-md-4 col-sm-4 col-xs-12">
+                                    <label for="input-expire-date-m2" style="color: white" class="add-font">input-expire-date-month: </label>
+                                    <button id="input-expire-date-m2" type="submit"
+                                            class="btn btn-submit form-control add-font"> بروزرسانی
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<script th:src="@{/mylocal/persian-date.min.js}"></script>
+<script th:src="@{/mylocal/persian-datepicker.min.js}"></script>
+<script>
+    var to, from;
+    to = $(".range-to-example").persianDatepicker({
+        altField: '.range-to-example-alt',
+
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false,
+        onSelect: function (unix) {
+            to.touched = true;
+            if (from && from.options && from.options.maxDate != unix) {
+                var cachedValue = from.getState().selected.unixDate;
+                from.options = {maxDate: unix};
+                if (from.touched) {
+                    from.setDate(cachedValue);
+                }
+            }
+        }
+    });
+    from = $(".range-from-example").persianDatepicker({
+        altField: '.range-from-example-alt',
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false,
+        onSelect: function (unix) {
+            from.touched = true;
+            if (to && to.options && to.options.minDate != unix) {
+                var cachedValue = to.getState().selected.unixDate;
+                to.options = {minDate: unix};
+                if (to.touched) {
+                    to.setDate(cachedValue);
+                }
+            }
+        }
+    });
+
+</script>
+<script>
+    $('#mngmt-users').next().removeClass('collapse');
+
+    $('.custom-file-input').on('change', function () {
+        var filename = $(this).val().substring(12);
+        $(this).next('.form-control-file').addClass("selected").html(filename);
+    })
+</script>
+<script>
+    function getData() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/supervisor/report/log-list}]]',
+            type: "post",
+            data: {
+                "log": $("#input-search-log-type").val(),
+                "startDate": $("#fromDate").val(),
+                "endDate": $("#toDate").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('tbody');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + respone[i]["userName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["eventMessage"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["formName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["ip"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["browserName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["date"] + "</td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                swal.close();
+
+            },
+            error: function (respone) {
+                swal({
+                    title: "خطا",
+                    text: "خطا در دریافت اطلاعات",
+                    icon: "error",
+                    button: "تایید",
+                    className: "swal-temp"
+                });
+            }
+        });
+    }
+
+    $('#mngmt-vulns').next().removeClass('collapse');
+
+
+</script>
+
+<script th:if="${messageTitle != null}">
+    swal({
+        title: '[[${messageTitle}]]',
+        text: '[[${messageContent}]]',
+        icon: '[[${messageIcon}]]',
+        button: "تایید",
+        className: "swal-temp"
+    });
+</script>
+<script th:replace="fragments/layout :: menuScript"></script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+

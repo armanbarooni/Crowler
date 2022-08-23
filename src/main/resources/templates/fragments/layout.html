@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="en"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <th:block th:fragment="lheader">
+
+        <link rel="stylesheet" th:href="@{/css/app.css}">
+        <link rel="stylesheet" th:href="@{/css/all.css}">
+
+        <script th:src="@{/mylocal/sweetalert.min.js}" type="text/javascript"></script>
+
+    </th:block>
+
+    <th:block th:fragment="header">
+        <link rel="stylesheet" th:href="@{/css/app.css}">
+        <link rel="stylesheet" th:href="@{/css/all.css}">
+
+        <script th:src="@{/js/app.js}" type="text/javascript"></script>
+        <script th:src="@{/js/all.js}" type="text/javascript"></script>
+        <script th:src="@{/mylocal/sweetalert.min.js}" type="text/javascript"></script>
+    </th:block>
+
+</head>
+<body>
+<div th:fragment="navigation">
+    <nav class="navbar navbar-menu fixed-top back-color col-md-12">
+        <div class="w-100">
+            <div>
+                <label class="navbar-brand username-header-label">
+                    <a style="text-decoration: none;color: inherit" th:href="@{/}">
+                        سامانه خزشگر
+                    </a>
+                </label>
+
+            </div>
+            <div class="float-left">
+
+                <a href="" onclick="event.preventDefault();
+                                    document.getElementById('logout-form').submit();">
+                    <img class="icons-header" th:src="@{/icons/sign-out-alt-solid.png}">
+                </a>
+
+                <form id="logout-form" th:action="@{/logout}" method="POST" style="display: none;">
+
+                </form>
+
+            </div>
+            <div class="float-left">
+                <label class="username-header" sec:authentication="name"></label>
+            </div>
+            <div class="float-left">
+                <img class="icons-header" th:src="@{/icons/user-solid.png}">
+            </div>
+        </div>
+
+    </nav>
+</div>
+
+
+<!-- menu -->
+<div th:fragment="menu">
+    <div class="nav-side-menu">
+        <div class="brand">فهرست</div>
+        <i class="fa fa-bars fa-2x toggle-btn" data-target="#menu-content" onclick="dropdownMenuRs2(this)"></i>
+        <div class="menu-list">
+            <ul id="menu-content" class="menu-content collapse">
+
+                <div sec:authorize="hasAnyRole('ROLE_MANAGER','ROLE_SUPERVISOR')">
+                    <li data-target="#users" id="mngmt-users" class="collapsed" onclick="dropdownMenuRs(this)">
+                        <a href="#">
+                            مدیریت سایت
+                            <img class="icons-15" width="16x" height="16" th:src="@{/icons/down.svg}">
+                        </a>
+                    </li>
+                    <ul class="sub-menu collapse" id="users">
+                        <li sec:authorize="hasRole('ROLE_MANAGER')" >
+                            <img class="icons-15" th:src="@{/icons/left.svg}">
+                            <a th:href="@{/manager/user/users}">مدیریت کاربران</a>
+                        </li>
+                        <li sec:authorize="hasAnyRole('ROLE_MANAGER','ROLE_SUPERVISOR')">
+                            <img class="icons-15" th:src="@{/icons/left.svg}">
+                            <a th:href="@{/supervisor/manage/manage-index}">تنظیمات سایت</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div sec:authorize="hasAnyRole('ROLE_ORDINARY','ROLE_SUPERVISOR','ROLE_EXPERT','ROLE_MANAGER')">
+                    <li data-target="#vulns" id="mngmt-vulns" class="collapsed" onclick="dropdownMenuRs(this)">
+                        <a href="#">
+                            مدیریت آسیب پذیری
+                            <img class="icons-15" th:src="@{/icons/down.svg}">
+                        </a>
+                    </li>
+                    <ul class="sub-menu collapse" id="vulns">
+                        <li>
+                            <img class="icons-15" th:src="@{/icons/left.svg}">
+                            <a th:href="@{/ordinary/report/reports}">گزارش گیری</a>
+                        </li>
+
+                        <li sec:authorize="hasAnyRole('ROLE_EXPERT','ROLE_MANAGER')">
+                            <img class="icons-15" th:src="@{/icons/left.svg}">
+                            <a th:href="@{/expert/update-db}">بروزرسانی پایگاه داده</a>
+                        </li>
+
+                    </ul>
+                </div>
+
+
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<script th:fragment="menuScript">
+    function openPage(pageName, elmnt, another) {
+        // Hide all elements with class="tabcontent" by default */
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        // Remove the background color of all tablinks/buttons
+        tablinks = document.getElementsByClassName("tablink");
+        for (i = 0; i < tablinks.length; i++)
+            tablinks[i].style.backgroundColor = "";
+        // Show the specific tab content
+        document.getElementById(pageName).style.display = "block";
+
+        // Add the specific color to the button used to open the tab content
+
+        elmnt.style.borderBottom = "2px solid #374d7c";
+        if (another == "add") {
+
+            document.getElementsByClassName('tablink')[0].style.borderBottom = "";
+        }
+        else {
+
+            document.getElementsByClassName('tablink')[1].style.borderBottom = "";
+        }
+    }
+
+    // Get the element with id="defaultOpen" and click on it
+    document.getElementById("defaultOpen").click();
+
+
+</script>
+
+
+
+</body>
+</html>

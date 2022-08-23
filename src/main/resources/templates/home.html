@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>crawler</title>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+</head>
+
+<body>
+<div th:replace="fragments/layout.html :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<script th:replace="fragments/layout :: menuScript"></script>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+
+    <div class="card card2" style="margin-top: 20px">
+        <div class="card-header card2-header">
+            <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+            <label>گزارش حساب</label>
+        </div>
+        <div class="card-body card2-body">
+
+
+            <label for="report-user-detail" class="add-font">ورود های اخیر:</label>
+            <label for="report-user-detail" class="float-left center-block add-font text-danger"
+                   th:text="'تعداد ورود ناموفق: '+${numberOfFailLogin}"></label>
+            <div id="report-user-detail" class="col-md-12 col-12 col-sm-12 table-div">
+                <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600">
+                    <thead>
+                    <tr>
+                        <th scope="col">زمان ورود</th>
+                        <th scope="col">مرورگر</th>
+                        <th scope="col">IP</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <tr th:each="log : ${logs}">
+                        <td th:text="${log.getDate()}"></td>
+                        <td th:text="${log.getBrowserName()}"></td>
+                        <td th:text="${log.getIp()}"></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="card card2" style="margin-top: 20px">
+        <div class="card-header card2-header">
+            <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+            <label>تغییر رمز عبور</label>
+        </div>
+        <div class="card-body card2-body">
+
+            <label for="change-user-password" class="add-font"></label>
+            <div id="change-user-password" class="col-md-12 col-12 col-sm-12 table-div">
+
+                <form th:action="@{/changePassword}" method="post" role="form">
+                    <div class="row">
+
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="old-user-password" class="add-font">رمز عبور قدیمی: </label>
+                            <input autocomplete="off" type="password"
+                                   class="form-control add-font input-size" name="old-password" required
+                                   id="old-user-password"
+                                   placeholder="رمز عبور قبلی را وارد کنید">
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="new-user-password" class="add-font">رمز عبور جدید:</label>
+                            <input autocomplete="off" minlength="4" type="password"
+                                   class="form-control add-font input-size" name="new-password" required
+                                   id="new-user-password"
+                                   placeholder="">
+                        </div>
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="new-user-password" class="add-font">سختی رمز عبور:</label>
+                            <progress class="form-control add-font input-size"
+                                      max="100" value="0" id="meter"></progress>
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="new-repeat-user-password" class="add-font">تکرار رمز عبور جدید: </label>
+                            <input autocomplete="off" minlength="4" type="password"
+                                   class="form-control add-font input-size" name="new-repeat-password"
+                                   oninput="checkPasswordMatch(this)" required id="new-repeat-user-password"
+                                   placeholder="">
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="col-md-2  col-sm-3  col-6 ">
+                        <button type="submit" class="btn btn-submit col-md-12 col-sm-12 col-12"> ثبت</button>
+                    </div>
+
+                </form>
+
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    $('#mngmt-term').next().removeClass('collapse');
+    $('.custom-file-input').on('change', function () {
+        var filename = $(this).val().substring(12);
+        $(this).next('.form-control-file').addClass("selected").html(filename);
+    })
+</script>
+<script>
+    function checkPasswordMatch(fieldConfirmPassword) {
+        if (fieldConfirmPassword.value != $("#new-user-password").val()) {
+            fieldConfirmPassword.setCustomValidity("رمز عبور با تکرار آن یسکان نیست");
+        } else {
+            fieldConfirmPassword.setCustomValidity("");
+        }
+    }
+</script>
+
+<script>
+
+    var code = document.getElementById("new-user-password");
+
+    var strengthbar = document.getElementById("meter");
+
+    code.addEventListener("keyup", function () {
+        checkpassword(code.value);
+    });
+
+
+    function checkpassword(password) {
+        var strength = 0;
+        if (password.length >= 4) {
+
+            if (password.match(/[a-z]+/)) {
+                strength += 1;
+            }
+            if (password.match(/[A-Z]+/)) {
+                strength += 1;
+            }
+            if (password.match(/[0-9]+/)) {
+                strength += 1;
+            }
+            if (password.match(/[$@#&!]+/)) {
+                strength += 1;
+
+            }
+
+        }
+
+
+        switch (strength) {
+            case 0:
+                strengthbar.value = 0;
+                break;
+
+            case 1:
+                strengthbar.value = 25;
+                break;
+
+            case 2:
+                strengthbar.value = 50;
+                break;
+
+            case 3:
+                strengthbar.value = 75;
+                break;
+
+            case 4:
+                strengthbar.value = 100;
+                break;
+        }
+    }
+</script>
+
+<script th:if="${messageTitle != null}">
+    swal({
+        title: '[[${messageTitle}]]',
+        text: '[[${messageContent}]]',
+        icon: '[[${messageIcon}]]',
+        button: "تایید",
+        className: "swal-temp"
+    });
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+

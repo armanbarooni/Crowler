@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+    <meta charset="UTF-8">
+    <title>کاربران</title>
+</head>
+<body>
+<div th:replace="fragments/layout :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+
+    <button class="tablink" onclick="openPage('add', this, 'search')" id="defaultOpen">افزودن</button>
+    <button class="tablink" onclick="openPage('search', this, 'add')">جستجو</button>
+
+    <div id="add" class="tabcontent">
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/plus-solid.png}">
+                <label>افزودن کاربر :</label>
+            </div>
+            <div class="card-body card2-body">
+
+            <form th:action="@{/manager/user/register-user}"
+                  th:object="${crmUser}" method="post" role="form">
+                <div class="row">
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="user-type" class="add-font">نوع کاربر :</label>
+                        <select class="form-control add-font" th:field="*{roleName}" name="role" id="user-type">
+                                <option value="expert">خبره</option>
+                            <option value="supervisor">ناظر</option>
+                            <option value="ordinary">عادی</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="user-firstname" class="add-font">نام :</label>
+                        <input autocomplete="off" th:field="*{firstName}" type="text" class="form-control add-font input-size" name="firstName" required id="user-firstname"
+                               placeholder="نام را وارد کنید">
+                    </div>
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="user-lastname" class="add-font">نام خانوادگی :</label>
+                        <input autocomplete="off" th:field="*{lastName}" type="text" class="form-control add-font input-size" name="lastName" required id="user-lastname"
+                               placeholder="نام خانوادگی را وارد کنید">
+                    </div>
+
+                </div>
+                <div class="row">
+
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="user-username" class="add-font">نام کابری :</label>
+                        <input autocomplete="off" th:field="*{userName}" type="text" class="form-control add-font input-size" name="username" required id="user-username"
+                               placeholder="نام کاربری را وارد کنید">
+                    </div>
+
+                    <div class="form-group col-md-4 col-sm-4 col-12">
+                        <label for="user-password" class="add-font">رمزعبور : </label>
+                        <input autocomplete="off" th:field="*{password}" type="password" class="form-control add-font input-size" name="password" required id="user-password"
+                               placeholder="">
+                    </div>
+
+                </div>
+                <div class="clearfix"></div>
+                <div class="col-md-2  col-sm-3  col-6 ">
+                    <button type="submit" class="btn btn-submit col-md-12 col-sm-12 col-12"> ثبت</button>
+                </div>
+
+            </form>
+
+            </div>
+        </div>
+
+    </div>
+    <div id="search" class="tabcontent">
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/search-solid.png}" >
+                <label>جست و جو :</label>
+            </div>
+            <div class="card-body card2-body">
+
+                <div class="p-2 row">
+                    <div class="form-group col-md-3 col-sm-3 col-xs-12">
+                        <select class="form-control add-font" name="role" required id="input-search-role">
+                            <option value="ordinary">عادی</option>
+                            <option value="supervisor">ناظر</option>
+                            <option value="expert">خبره</option>
+                            <option value="manager">مدیر</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3 col-sm-3 col-xs-12">
+                        <input  type="text" id="input-search-user-m" class="form-control add-font" placeholder="بخشی از نام خانوادگی " >
+                    </div>
+                    <div class="form-group float-left col-md-2 offset-md-3 col-sm-2 offset-sm-3 col-12">
+                        <label class="btn btn-submit" onclick="getData()">
+                            جست و جو
+                        </label>
+                    </div>
+                </div>
+
+
+                <div class="col-md-12 col-12 col-sm-12 table-div">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">نوع</th>
+                            <th scope="col">نام</th>
+                            <th scope="col">نام خانوادگی</th>
+                            <th scope="col">نام کاربری</th>
+                            <th scope="col">آخرین ورود </th>
+                            <th scope="col">نمایش</th>
+                            <th scope="col">ویرایش</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script th:if="${messageTitle != null}">
+    swal({
+    title: '[[${messageTitle}]]',
+    text: '[[${messageContent}]]',
+    icon: '[[${messageIcon}]]',
+    button: "تایید",
+    className: "swal-temp"
+    });
+</script>
+
+<script>
+    function getData() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        $.ajax({
+            url: '[[@{/manager/user/users-list}]]',
+            type: "GET",
+            contentType : "application/json",
+            data: {
+                "name": $("#input-search-user-m").val(),
+                "role": $("#input-search-role").val()
+            },
+            success: function (respone) {
+                var body = $('tbody');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr>";
+                    output += "<td>" + respone[i]["role"] + "</td>";
+                    output += "<td>" + respone[i]["firstName"] + "</td>";
+                    output += "<td>" + respone[i]["lastName"] + "</td>";
+                    output += "<td>" + respone[i]["userName"] + "</td>";
+                    output += "<td>" + respone[i]["lastLogin"] + "</td>";
+                    output += "<td><a href=\"/manager/user/show-user/" + respone[i]["id"] + "\" target='_blank'><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\"></a></td>";
+                    output += "<td><a href=\"/manager/user/edit-user/" + respone[i]["id"] + "\" target='_blank'><img class=\"icons-18\" src=\"[[@{/icons/edit-regular-b.png}]]\"></a></td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                swal.close();
+
+
+            },
+            error: function (respone) {
+                swal({
+                    title: "خطا",
+                    text: "خطا در دریافت اطلاعات",
+                    icon: "error",
+                    button: "تایید",
+                    className: "swal-temp",
+                });
+            }
+        });
+    }
+
+    $('#mngmt-users').next().removeClass('collapse');
+
+</script>
+
+<script th:replace="fragments/layout :: menuScript"></script>
+
+</body>
+</html>

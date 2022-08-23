@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+
+<head>
+    <title>ورود</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <th:block th:replace="fragments/layout.html :: lheader"></th:block>
+</head>
+
+<body class="main">
+
+
+<div class="container-fluid" id="login-container">
+
+    <div class=" animated slideInRight ">
+
+        <div class="clearfix"></div>
+        <form class="form-horizontal offset-md-1 offset-sm-1 offset-4 login-form" method="POST"
+              th:action="@{/authenticateTheUser}">
+            <div class="form-group text-center col-md-2 col-sm-12 col-7">
+
+
+                <label class="add-font">ورود</label>
+
+                <input type="text" id="username"
+                       class="add-font form-control text-center login-margin-top login-input hvr-underline-from-center"
+                       placeholder="نام کاربری" name="username" required>
+
+                <input type="password" id="password"
+                       class="add-font form-control text-center  login-maring-top login-input" placeholder="گذرواژه"
+                       name="password" required>
+
+                <th:block th:if="${captchaEncode != null}">
+                    <div class="input-group mb-3 login-maring-top">
+                        <img alt="captcha" class="img-thumbnail" th:src="${'data:image/png;base64,'+captchaEncode}"/>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input  class="add-font form-control text-center  login-maring-top login-input" placeholder="کد امنیتی" name="captcha" required="true"/>
+                    </div>
+                </th:block>
+
+
+                <button id="btn-accept" type="submit"
+                        class="btn login-btn login-maring-top col-md-12 offset-md-0 col-sm-6 offset-sm-1 hvr-fade"
+                        data-style="slide-up">تایید
+                </button>
+                <br><br>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script th:if="${messageTitle != null}">
+    swal({
+        title: '[[${messageTitle}]]',
+        text: '[[${messageContent}]]',
+        icon: '[[${messageIcon}]]',
+        button: "تایید",
+        className: "swal-temp"
+    });
+</script>
+
+</body>
+</html>

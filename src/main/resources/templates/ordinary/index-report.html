@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="en"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+    <meta charset="UTF-8">
+    <title>گزارش</title>
+
+    <meta th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+</head>
+<body>
+<div th:replace="fragments/layout :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+
+      <!--  <button class="tablink" onclick="openPage('add', this, 'search')" >جستجوی موردی</button> -->
+
+    <button class="tablink" onclick="openPage('search', this, 'add')" id="defaultOpen">  جستجوی لیستی</button>
+
+
+       <!-- <div id="add"  class="tabcontent">
+            <div class="card card2">
+                <div class="card-header card2-header">
+                    <img class="icons-18" th:src="@{/icons/search-solid.png}">
+                    <label>جست و جو  :</label>
+                </div>
+
+
+                <div class="card-body card2-body">
+
+                    <form th:action="@{/supervisor/report/export-reports-list}" method="post" role="form">
+
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <div class="row">
+                            <div class="form-group col-md-4 col-sm-4 col-12">
+                                <label for="input-search-distribution" class="add-font">توزیع :</label>
+                                <select class="form-control add-font" name="distribution" required
+                                        id="input-search-distribution2">
+                                    <option value="vendor">vendor</option>
+                                    <option value="package">package</option>
+
+
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4 col-sm-4 col-12">
+                                <label for="input-search-usev" class="add-font">استفاده از نسخه :</label>
+                                <select class="form-control add-font" name="usev" required id="input-search-usev2">
+                                    <option value="0">بله-ورژن باید حتما وارد شود </option>
+                                    <option value="2"> بله فیکس-ورژن باید حتما وارد شود  </option>
+                                    <option value="1">خیر-ورژن در نظر گرفته نمیشود</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-4 col-sm-4 col-12">
+                                <label for="textField" class="add-font">نام بسته ها:</label>
+                                <textarea autocomplete="off" type="text" class="form-control add-font input-size "
+                                          name="textField" required id="textField2"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+
+                            <div class="form-group col-md-4 col-sm-4 col-12" id="input-date2">
+                                <label for="fromDate" class="add-font">از تاریخ :</label>
+                                <input type="text" name="startDate" autocomplete="off"
+                                       style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                                       class="range-from-example form-control  add-font"
+                                       data-mddatetimepicker="true"
+                                       id="fromDate2"
+                                       value="">
+                            </div>
+                            <div class="form-group col-md-4 col-sm-4 col-12">
+                                <label for="toDate" class="add-font">تا تاریخ :</label>
+                                <input type="text" name="endDate" autocomplete="off"
+                                       style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                                       class="range-to-example form-control add-font" id="toDate2"
+                                       value="">
+
+                            </div>
+
+                            <div sec:authorize="hasAnyRole('ROLE_SUPERVISOR','ROLE_MANAGER')" class="form-group float-left col-md-4 col-sm-4 col-12">
+                                <label id="btn-search2" class="btn btn-submit form-control add-font" onclick="getData()">
+                                    جست و جو
+                                </label>
+
+
+                                <button type="submit" id="btn-download2" class="btn btn-submit form-control add-font">
+                                    دانلود
+                                </button>
+                            </div>
+                            <div sec:authorize="hasAnyRole('ROLE_ORDINARY','ROLE_EXPERT')" class="form-group float-left col-md-4 col-sm-4 col-12">
+                                <label style="color: white" class="add-font">.</label>
+
+                                <label id="btn-search-o2" class="btn btn-submit form-control add-font" onclick="getData()">
+                                    جست و جو
+                                </label>
+
+                            </div>
+
+                        </div>
+                    </form>
+
+
+                    <div class="col-md-12 col-12 col-sm-12 table-div">
+                        <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600">
+                            <thead>
+                            <tr>
+                                <th scope="col">ردیف</th>
+                                <th scope="col">شناسه</th>
+                                <th scope="col">نام پکیج</th>
+                                <th scope="col">نام بسته</th>
+                                <th scope="col">ورژن</th>
+                                <th scope="col">رتبه</th>
+                                <th scope="col"> تاریخ انتشار </th>
+                                <th scope="col"> تاریخ به روز رسانی</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>-->
+
+
+    <div id="search" class="tabcontent">
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/search-solid.png}">
+                <label>جست و جوی لیستی :</label>
+            </div>
+
+
+            <div class="card-body card2-body">
+
+                <form th:action="@{/supervisor/report/export-reports-list}" method="post" role="form">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <div class="row">
+
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="input-search-usev" class="add-font">استفاده از نسخه :</label>
+                            <select class="form-control add-font" name="usev" required id="input-search-usev">
+                                <option value="0">بله-ورژن باید حتما وارد شود </option>
+                                <option value="2"> بله فیکس-ورژن باید حتما وارد شود  </option>
+                                <option value="1">خیر-ورژن در نظر گرفته نمیشود</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="textField" class="add-font">نام بسته ها:</label>
+                            <textarea autocomplete="off" type="text" class="form-control add-font input-size "
+                                      name="textField" required id="textField"></textarea>
+                        </div>
+                        <div class="form-group float-left col-md-4 col-sm-4 col-12">
+                            <label for="textField" class="add-font">.</label>
+                            <label id="btn-search" class="btn btn-submit form-control add-font" onclick="getData()">
+                                جست و جو
+                            </label>
+
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="form-group col-md-4 col-sm-4 col-12" id="input-date">
+                            <label for="fromDate" class="add-font">از تاریخ :</label>
+                            <input type="text" name="startDate" autocomplete="off"
+                                   style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                                   class="range-from-example form-control  add-font"
+                                   data-mddatetimepicker="true"
+                                   id="fromDate"
+                                   value="">
+                        </div>
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="toDate" class="add-font">تا تاریخ :</label>
+                            <input type="text" name="endDate" autocomplete="off"
+                                   style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                                   class="range-to-example form-control add-font" id="toDate"
+                                   value="">
+
+                        </div>
+
+
+
+                    </div>
+                </form>
+
+
+                <div class="col-md-12 col-12 col-sm-12 table-div">
+                    <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600">
+                        <thead>
+                        <tr>
+                            <th scope="col">ردیف</th>
+                            <th scope="col">شناسه</th>
+                            <th scope="col">نام پکیج</th>
+                            <th scope="col">نام بسته</th>
+                            <th scope="col">ورژن</th>
+                            <th scope="col">رتبه</th>
+                            <th scope="col"> تاریخ انتشار </th>
+                            <th scope="col"> تاریخ به روز رسانی</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+
+</div>
+
+
+<script th:src="@{/mylocal/persian-date.min.js}"></script>
+<script th:src="@{/mylocal/persian-datepicker.min.js}"></script>
+<script>
+    var to, from;
+    to = $(".range-to-example").persianDatepicker({
+        altField: '.range-to-example-alt',
+
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false,
+        onSelect: function (unix) {
+            to.touched = true;
+            if (from && from.options && from.options.maxDate != unix) {
+                var cachedValue = from.getState().selected.unixDate;
+                from.options = {maxDate: unix};
+                if (from.touched) {
+                    from.setDate(cachedValue);
+                }
+            }
+        }
+    });
+    from = $(".range-from-example").persianDatepicker({
+        altField: '.range-from-example-alt',
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false,
+        onSelect: function (unix) {
+            from.touched = true;
+            if (to && to.options && to.options.minDate != unix) {
+                var cachedValue = to.getState().selected.unixDate;
+                to.options = {minDate: unix};
+                if (to.touched) {
+                    to.setDate(cachedValue);
+                }
+            }
+        }
+    });
+
+</script>
+<script>
+    $('.on-select-example').persianDatepicker({
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false
+    });
+</script>
+<script>
+    function getData() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/ordinary/report/reports-list}]]',
+            type: "post",
+            data: {
+
+                "usev": $("#input-search-usev").val(),
+                "startDate": $("#fromDate").val(),
+                "endDate": $("#toDate").val(),
+                "file": $("#textField").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('tbody');
+                var output = "";
+
+                if(isNaN(respone)){
+
+                    for (var i = 0; i < respone.length; i++) {
+
+                        output += "<tr dir='ltr'>";
+                        output += "<td dir='ltr'>" + i + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["cveName"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["packageName"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["product"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["version"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["cvss"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["createdDate"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["lastModifiedDate"] + "</td>";
+                        output += "</tr>";
+                    }
+                    swal.close();
+                }else if(typeof respone == 'number'){
+                    swal.close();
+
+                    var msg = "";
+                    if(respone == -1){
+                        msg = " خطا در دریافت اطلاعات ";
+                    }
+                    else if(respone==0){
+                        msg = " هیچ بسته ای وارد نشده است ";
+
+                    }
+                    else if(respone==10)
+                    {
+                        msg = "فرمت تاریخ اشتباه است لطفا به فرمت مشخص شده وارد شود";
+
+                    }
+                    else if(respone==70007)
+                    {
+                        msg = "بسته ای یافت نشد";
+
+                    }
+                    else if(respone<-1)
+                    {
+                        msg = "خطا در خط ";
+                        respone=respone+1;
+                        respone=-respone;
+                        var m2 = respone;
+                        var m3 = "  بخش نام بسته ها رخ داده است. استفاده از کاراکتر غیر مجاز"
+                        msg = msg + m2 + m3;
+
+                    }
+                    else{
+                        msg = "خطا در خط ";
+                        var m2 = respone;
+                        var m3 = "  بخش نام بسته ها رخ داده است."
+                        msg = msg + m2 + m3;
+                    }
+
+
+                    swal({
+                        title: "خطا",
+                        text: msg,
+                        icon: "error",
+                        button: "تایید",
+                        className: "swal-temp"
+                    });
+
+                }
+                body.html(output);
+                swal.close();
+
+            },
+            error: function (respone) {
+                swal({
+                    title: "خطا",
+                    text: "خطا در دریافت اطلاعات",
+                    icon: "error",
+                    button: "تایید",
+                    className: "swal-temp"
+                });
+            }
+        });
+    }
+
+    $('#mngmt-vulns').next().removeClass('collapse');
+
+
+</script>
+<script th:if="${messageTitle != null}">
+    swal({
+        title: '[[${messageTitle}]]',
+        text: '[[${messageContent}]]',
+        icon: '[[${messageIcon}]]',
+        button: "تایید",
+        className: "swal-temp"
+    });
+</script>
+
+<script th:replace="fragments/layout :: menuScript"></script>
+
+</body>
+</html>

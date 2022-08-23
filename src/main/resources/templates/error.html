@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>404</title>
+
+    <!-- Google font -->
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:900" rel="stylesheet">
+
+    <!-- Custom stlylesheet -->
+    <link rel="stylesheet" th:href="@{/css/error_style.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/all.css}">
+
+</head>
+
+<body>
+
+<div id="notfound">
+    <div class="notfound">
+        <div class="notfound-404">
+            <h3>خطا! صفحه وجود ندارد</h3>
+            <h1><span>4</span><span>0</span><span>4</span></h1>
+        </div>
+        <h2>صفحه ای که به دنبال آن هستید وجود ندارد</h2>
+        <button type="button" class="btn btn-light add-font">
+            <a style="text-decoration: none" th:href="@{/}">صفحه اصلی</a>
+        </button>
+
+    </div>
+</div>
+
+</body>
+
+</html>

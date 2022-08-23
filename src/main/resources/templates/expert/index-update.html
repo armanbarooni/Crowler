@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>crawler</title>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+</head>
+
+<body>
+<div th:replace="fragments/layout.html :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<script th:replace="fragments/layout :: menuScript"></script>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+
+    <div class="card card2" style="margin-top: 20px">
+        <div class="card-header card2-header">
+            <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+            <label>بروزرسانی پایگاه داده</label>
+        </div>
+        <div class="card-body card2-body">
+
+            <label for="change-expireTime-password" class="add-font"></label>
+            <div id="change-expireTime-password" class="col-md-12 col-12 col-sm-12 table-div">
+
+                <form th:action="@{/expert/update-database}" method="post" role="form">
+                    <div class="row">
+
+
+
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="reference-type" class="add-font">years :</label>
+                            <select class="form-control add-font"  name="reference" id="reference-type">
+                                <option value="tenable">Tenable_all</option>
+                                <option value="nvd_current">nvd_current_year</option>
+                                <option value="nvd_all">nvd_all_year</option>
+                                <option value="recent">recent</option>
+
+                            </select>
+                        </div>
+
+                        <div class="clearfix"></div>
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="start-update-btn" style="color: white" class="add-font">.</label>
+
+                            <button type="submit" id="start-update-btn" class="btn btn-submit col-md-12 col-sm-12 col-12">شروع</button>
+                        </div>
+
+                    </div>
+
+                </form>
+
+
+            </div>
+
+        </div>
+
+
+
+
+
+
+
+    </div>
+
+</div>
+<script>
+    $('#mngmt-vulns').next().removeClass('collapse');
+
+    $('.custom-file-input').on('change', function () {
+        var filename = $(this).val().substring(12);
+        $(this).next('.form-control-file').addClass("selected").html(filename);
+    })
+</script>
+
+<script th:if="${messageTitle != null}">
+    swal({
+        title: '[[${messageTitle}]]',
+        text: '[[${messageContent}]]',
+        icon: '[[${messageIcon}]]',
+        button: "تایید",
+        className: "swal-temp"
+    });
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+

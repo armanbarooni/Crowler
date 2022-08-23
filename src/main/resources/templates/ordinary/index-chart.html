@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>crawler</title>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+</head>
+
+<body>
+<div th:replace="fragments/layout.html :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<script th:replace="fragments/layout :: menuScript"></script>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+
+    <div class="card card2" style="margin-top: 20px">
+        <div class="card-header card2-header">
+            <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+            <label>نمودار</label>
+        </div>
+        <div class="card-body card2-body">
+
+            <label for="change-expireTime-password" class="add-font"></label>
+            <div id="change-expireTime-password" class="col-md-12 col-12 col-sm-12 table-div">
+
+                <form th:action="@{/ordinary/report/show-chart}" method="post" role="form">
+                    <div class="row">
+
+                        <div class="form-group col-md-4 col-sm-4 col-12" id="input-date">
+                            <label for="fromDate" class="add-font">از تاریخ :</label>
+                            <input type="text" name="startDate" autocomplete="off"
+                                   style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                                   class="range-from-example form-control  add-font"
+                                   data-mddatetimepicker="true"
+                                   id="fromDate"
+                                   value="">
+                        </div>
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label for="toDate" class="add-font">تا تاریخ :</label>
+                            <input type="text" name="endDate" autocomplete="off"
+                                   style="font-family: 'Times New Roman'; font-weight: 600 " dir="ltr"
+                                   class="range-to-example form-control add-font" id="toDate"
+                                   value="">
+
+                        </div>
+
+
+
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-4 col-sm-4 col-12" id="input_distro">
+                            <label for="input_distro" class="add-font">توزیع :</label>
+                            <select class="form-control add-font"  name="distro" >
+                                <option value="Fedora">Fedora</option>
+                                <option value="Centos">Centos</option>
+                            </select>
+
+                        </div>
+                        <div class="form-group col-md-4 col-sm-4 col-12" id="input_package">
+                            <label for="input_package" class="add-font">بسته :</label>
+                            <input type="text" name="package" autocomplete="off"
+                                   class="form-control add-font"
+                                   value="">
+
+                        </div>
+
+                        <div class="clearfix"></div>
+                        <div class="form-group col-md-4 col-sm-4 col-12">
+                            <label style="color: white" class="add-font">.</label>
+                            <button type="submit" id="start-update-btn" class="btn btn-submit col-md-12 col-sm-12 col-12">نمایش</button>
+                        </div>
+                    </div>
+
+
+                </form>
+
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div th:if="${data != null}" class="card card2" style="margin-top: 20px">
+        <div class="card-header card2-header">
+            <img class="icons-18" th:src="@{/icons/clipboard-list-solid.png}">
+            <label>نمودار آسیب پذیری ها</label>
+        </div>
+        <div class="card-body card2-body">
+
+            <label for="change-expireTime-password" class="add-font"></label>
+            <div  class="col-md-12 col-12 col-sm-12 table-div">
+                <div class="ml-auto col-md-6 col-sm-12 col-lg-6 col-12">
+                    <canvas id="myChart" class="margin-top-create"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    $('#patches').next().removeClass('collapse');
+
+    $('.custom-file-input').on('change', function () {
+        var filename = $(this).val().substring(12);
+        $(this).next('.form-control-file').addClass("selected").html(filename);
+    })
+</script>
+
+<script th:if="${messageTitle != null}">
+    swal({
+        title: '[[${messageTitle}]]',
+        text: '[[${messageContent}]]',
+        icon: '[[${messageIcon}]]',
+        button: "تایید",
+        className: "swal-temp"
+    });
+</script>
+
+
+<script th:src="@{/mylocal/persian-date.min.js}"></script>
+<script th:src="@{/mylocal/persian-datepicker.min.js}"></script>
+<script>
+    var to, from;
+    to = $(".range-to-example").persianDatepicker({
+        altField: '.range-to-example-alt',
+
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false,
+        onSelect: function (unix) {
+            to.touched = true;
+            if (from && from.options && from.options.maxDate != unix) {
+                var cachedValue = from.getState().selected.unixDate;
+                from.options = {maxDate: unix};
+                if (from.touched) {
+                    from.setDate(cachedValue);
+                }
+            }
+        }
+    });
+    from = $(".range-from-example").persianDatepicker({
+        altField: '.range-from-example-alt',
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false,
+        onSelect: function (unix) {
+            from.touched = true;
+            if (to && to.options && to.options.minDate != unix) {
+                var cachedValue = to.getState().selected.unixDate;
+                to.options = {minDate: unix};
+                if (to.touched) {
+                    to.setDate(cachedValue);
+                }
+            }
+        }
+    });
+
+</script>
+<script>
+    $('.on-select-example').persianDatepicker({
+        altFormat: 'LLLL',
+        autoClose: true,
+        format: 'YYYY/MM/DD',
+        calendarType: 'gregorian',
+        initialValue: false
+    });
+</script>
+
+<script th:src="@{/mylocal/Chart.min.js}"></script>
+<script>
+    var ctx = document.getElementById("myChart").getContext('2d');
+
+    let critical = [[${data.get(0)}]]
+    if(critical===-111)
+    {
+
+        var msg = "";
+
+        msg = "فرمت تاریخ اشتباه است لطفا به فرمت مشخص شده وارد شود";
+        swal({
+            title: "خطا",
+            text: msg,
+            icon: "error",
+            button: "تایید",
+            className:  "swal-temp"
+        });
+    }
+    else
+    {
+        let high = [[${data.get(1)}]]
+        let normal = [[${data.get(2)}]]
+        let low = [[${data.get(3)}]]
+
+
+        let critical1 = [[${data.get(4)}]]
+        let high1 = [[${data.get(5)}]]
+        let normal1 = [[${data.get(6)}]]
+        let low1 = [[${data.get(7)}]]
+
+        var myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ["Critical   "+critical+" "+critical1+"% ", "High   "+high+" "+high1+"%", "Normal  "+normal+" "+normal1+"%", "Low  "+low+" "+low1+"%"],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [critical,high,normal,low],
+                    backgroundColor: [
+                        'rgba(0, 0, 0, 1)',
+                        'rgba(255, 0, 0, 1)',
+                        'rgb(114,226,26)',
+                        'rgb(125,160,224)',
+                    ],
+                    borderColor: [
+                        'rgba(255, 255, 255, 1)',
+                        'rgba(255, 255, 255, 1)',
+                        'rgba(255, 255, 255, 1)',
+                        'rgba(255, 255, 255, 1)',
+
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                legend: {
+                    display: true,
+                    position: 'left',
+                }
+            }
+        });
+    }
+
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+

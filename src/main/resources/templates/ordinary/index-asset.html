@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+    <meta charset="UTF-8">
+    <title>اسکن شبکه</title>
+
+    <meta th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+</head>
+<body>
+<div th:replace="fragments/layout :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+    <button class="tablink" onclick="openPage('add', this, 'search')" id="defaultOpen">اسکن</button>
+    <button class="tablink" onclick="openPage('search', this, 'add')">جستجو</button>
+
+    <div id="add" class="tabcontent">
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/plus-solid.png}">
+                <label>اسکن شبکه</label>
+            </div>
+
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="card-body card2-body">
+                <form th:action="@{/ordinary/discovery/nmap-downlaod}" method="post" role="form">
+        <div class="row">
+
+            <div class="form-group col-md-8 col-sm-8 col-xs-12">
+                <label for="input-command" class="add-font">دستور :</label>
+                <input dir="ltr"  type="text" id="input-command" class="form-control add-font" placeholder="command" >
+            </div>
+
+            <div class="form-group float-left col-md-4 col-sm-4 col-12">
+                <label for="input-command" style="color: white" class="add-font">.</label>
+                <label id="btn-scan" class="btn btn-submit form-control add-font" onclick="getData()">
+                    اسکن
+                </label>
+                <button type="submit" id="btn-download2" class="btn btn-submit form-control add-font">
+                    دانلود
+                </button>
+            </div>
+        </div>
+
+
+                </form>
+
+            </div>
+
+            <div class="col-md-12 col-12 col-sm-12 table-div" >
+                <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600" >
+                    <thead>
+                    <tr>
+                        <th  scope="col">ردیف</th>
+                        <th  scope="col">نام</th>
+                        <th  scope="col">آدرس ip</th>
+                        <th  scope="col">پورت ip</th>
+                        <th  scope="col">پروتکل پورت</th>
+                        <th  scope="col">نام سرویس</th>
+                        <th  scope="col"> نام محصول</th>
+                        <th  scope="col">نسخه</th>
+                        <th  scope="col">اطلاعات</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody-scan">
+
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+    </div>
+    <div id="search" class="tabcontent">
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/search-solid.png}" >
+                <label>جست و جو :</label>
+            </div>
+            <div class="card-body card2-body">
+
+                <div class="p-2 row">
+
+                    <div class="form-group col-md-8 col-sm-8 col-xs-12">
+                        <label for="input-ip" class="add-font">IP :</label>
+                        <input dir="ltr"  type="text" id="input-ip" class="form-control add-font" placeholder="ip" >
+                    </div>
+
+                    <div class="form-group float-left col-md-4 col-sm-4 col-12">
+                        <label for="input-command" style="color: white" class="add-font">.</label>
+                        <label class="btn btn-submit form-control add-font" onclick="getSearchData() ">
+                            جست و جو
+                        </label>
+                    </div>
+                </div>
+
+
+                <div class="col-md-12 col-12 col-sm-12 table-div">
+                    <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600" >
+                        <thead>
+                        <tr>
+                            <th  scope="col">ردیف</th>
+                            <th  scope="col">نام</th>
+                            <th  scope="col">آدرس ip</th>
+                            <th  scope="col">پورت ip</th>
+                            <th  scope="col">پروتکل پورت</th>
+                            <th  scope="col">نام سرویس</th>
+                            <th  scope="col"> نام محصول</th>
+                            <th  scope="col">نسخه</th>
+                            <th  scope="col">اطلاعات</th>
+                            <th  scope="col">شناسه </th>
+                            <th  scope="col">نام بسته</th>
+                            <th  scope="col">آخرین تغییر</th>
+                            <th  scope="col">رتبه</th>
+                            <th  scope="col"> پیچیدگی حمله</th>
+                            <th  scope="col"> تاثیر محرمانگی</th>
+                            <th  scope="col"> تاثیر جامعیت</th>
+                            <th  scope="col"> تاثیر دسترس پذیری</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody-search">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script th:src="@{/mylocal/persian-date.min.js}"></script>
+<script th:src="@{/mylocal/persian-datepicker.min.js}"></script>
+
+<script>
+    function getData() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/ordinary/discovery/nmap-scan}]]',
+            type: "post",
+            data: {
+                "command": $("#input-command").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["scanName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["ipAddress"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["portId"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["portProtocol"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["serviceName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["productName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["version"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["info"] + "</td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+    function getSearchData() {
+
+        // swal({
+        //     title: "منتظر دریافت پاسخ از سرور ...",
+        //     text: "لطفاً منتظر بمانید!",
+        //     imageUrl: "localhost\images\ajax-loader-gif-6.gif",
+        //     buttons: false,
+        //     className: "swal-temp"
+        // });
+
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/ordinary/discovery/nmap-list}]]',
+            type: "post",
+            data: {
+                "ip": $("#input-ip").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-search');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["scanName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["ipAddress"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["portId"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["portProtocol"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["serviceName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["productName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["version"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["info"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["cveName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["packageName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["lastModifiedDate"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["cvss"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["attackComplexity"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["confidentialityEffect"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["integrityEffect"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["availabilityEffect"] + "</td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                // swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+    $('#mngmt-nmap').next().removeClass('collapse');
+
+
+</script>
+<script th:replace="fragments/layout :: menuScript"></script>
+
+</body>
+</html>
