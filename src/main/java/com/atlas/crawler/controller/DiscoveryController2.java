@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 @Controller
@@ -36,7 +37,7 @@ public class DiscoveryController2 {
     @ResponseBody
     @PostMapping("/nmap-download")
     public void NMAPSdownload(@RequestParam("command") String command
-    ,  HttpServletResponse response             ) throws IOException {
+    ,  HttpServletResponse response             ) throws IOException, SQLException {
 
         System.out.println(command);
 
@@ -46,7 +47,7 @@ public class DiscoveryController2 {
         cveExcelExporter.exportCsv(response);
         return;
     }
-    private List<NMAP> getNMAPFromCore(String command) {
+    private List<NMAP> getNMAPFromCore(String command) throws SQLException {
 
         Connection connection = coreService.getConnection();
         Adapter adapter = new Adapter(connection);

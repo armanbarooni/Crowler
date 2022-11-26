@@ -261,10 +261,10 @@ public class Adapter extends Thread{
             //    if(general.pool.)
             }
 
-
+        connection.close();
 
     }
-    public List<NMAP> getAssetDiscovery(String command) {
+    public List<NMAP> getAssetDiscovery(String command) throws SQLException {
         try {
             command="nmap -n -Pn -sS -sV -oN D:\\output.txt "+command;
             CrawlerApi c= new CrawlerApi(connection);
@@ -274,14 +274,15 @@ public class Adapter extends Thread{
             collectionNMAP =   c.setNMAPCommand(command);
 
             List<NMAP> nmaps = convertToNMAPModel(collectionNMAP);
-
+            connection.close();
             return nmaps;
 
         }catch (Exception e){
+            connection.close();
             throw new RuntimeException();
         }
     }
-    private List<NMAP> convertToNMAPModel(Collection<List<String>> collectionNMAP) {
+    private List<NMAP> convertToNMAPModel(Collection<List<String>> collectionNMAP) throws SQLException {
         List<NMAP> nmaps = new ArrayList<>();
         Iterator<List<String>> iterator = collectionNMAP.iterator();
         while (iterator.hasNext()){
@@ -299,11 +300,11 @@ public class Adapter extends Thread{
 
             nmaps.add(nmap);
         }
-
+        connection.close();
         return nmaps;
     }
 
-    public void  updateDatabase(String distro, String ref){
+    public void  updateDatabase(String distro, String ref) throws SQLException {
 
         isStartUpdateDataBase = true;
 
@@ -317,9 +318,10 @@ public class Adapter extends Thread{
         }
         general.reset_static();
         crawlerApi.reset_static();
+        connection.close();
     }
 
-    public void saveCve(CVE cve){
+    public void saveCve(CVE cve) throws SQLException {
         CrawlerApi c= new CrawlerApi(connection);
         try {
             com.atlas.crawler.core.CVE cve1 = convertCveModelToCveCore(cve);
@@ -329,9 +331,10 @@ public class Adapter extends Thread{
         }
         general.reset_static();
         crawlerApi.reset_static();
+        connection.close();
     }
 
-    private com.atlas.crawler.core.CVE convertCveModelToCveCore(CVE cve){
+    private com.atlas.crawler.core.CVE convertCveModelToCveCore(CVE cve) throws SQLException {
 
         List<String> packageName = new ArrayList<>();
         packageName.add(cve.getPackageName());
@@ -366,17 +369,18 @@ public class Adapter extends Thread{
         );
 
 
-
+        connection.close();
         return myCve;
     }
 
-    private List<String> convertStringToListBySplit(String myString) {
+    private List<String> convertStringToListBySplit(String myString) throws SQLException {
 
         List<String> result = Arrays.asList(myString.split("\\r?\\n").clone());
+        connection.close();
         return result;
     }
 
-    private Date convertStringToDate(String time){
+    private Date convertStringToDate(String time) throws SQLException {
 
         String[] splitStringDate = time.split("/");
 
@@ -385,10 +389,11 @@ public class Adapter extends Thread{
         Integer day   = Integer.valueOf(splitStringDate[2]);
 
         GregorianCalendar calendar = new GregorianCalendar(year,month,day);
+        connection.close();
         return calendar.getTime();
     }
 
-    private List<List<String>> createProductVersionList(String productVersion){
+    private List<List<String>> createProductVersionList(String productVersion) throws SQLException {
         List<String> rowProductVersion = convertStringToListBySplit(productVersion);
         List<String> products = new ArrayList<>();
         List<String> versions = new ArrayList<>();
@@ -408,11 +413,11 @@ public class Adapter extends Thread{
         List<List<String>> result = new ArrayList<>();
         result.add(products);
         result.add(versions);
-
+        connection.close();
         return result;
     }
 
-    public void downloadPatchs(String distribution,String version,List<String> packages) throws IOException, InterruptedException {
+    public void downloadPatchs(String distribution,String version,List<String> packages) throws IOException, InterruptedException, SQLException {
         int processors = Runtime.getRuntime().availableProcessors();
         ExecutorService pool = Executors.newFixedThreadPool(processors);
         CrawlerApi c= new CrawlerApi(connection);
@@ -428,9 +433,11 @@ public class Adapter extends Thread{
                 }
             }
         };
+
         pool.execute(r);
+        connection.close();
     }
-    private List<NmapCve> convertToNmapCveModel(Collection<List<String>> collectionNmapCve) {
+    private List<NmapCve> convertToNmapCveModel(Collection<List<String>> collectionNmapCve) throws SQLException {
         List<NmapCve> nmapCves = new ArrayList<>();
         Iterator<List<String>> iterator = collectionNmapCve.iterator();
         while (iterator.hasNext()){
@@ -472,7 +479,7 @@ public class Adapter extends Thread{
 
             nmapCves.add(nmapCve);
         }
-
+        connection.close();
         return nmapCves;
     }
     public List<NmapCve> getNmapCveBaseOnIp(String ip) {
@@ -484,7 +491,7 @@ public class Adapter extends Thread{
             collectionNmapCve =   c.getNmapCveBaseOnIp(ip);
 
             List<NmapCve> nmapCve = convertToNmapCveModel(collectionNmapCve);
-
+            connection.close();
             return nmapCve;
 
         }catch (Exception e){
@@ -504,7 +511,7 @@ public class Adapter extends Thread{
             //collectionNmapCve =   c.setNmapCveLastScan();
 
             List<NmapCve> nmapCve = convertToNmapCveModel(collectionNmapCve);
-
+            connection.close();
             return nmapCve;
 
         }catch (Exception e){
