@@ -5,6 +5,7 @@
 package com.atlas.crawler.controller;
 
 
+import com.atlas.crawler.alerter.email;
 import com.atlas.crawler.entity.Log;
 import com.atlas.crawler.entity.User;
 import com.atlas.crawler.model.VisibleLog;
@@ -31,9 +32,12 @@ public class HomeController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private email email;
+
     @GetMapping("/")
     public String home(Authentication auth, Model model, HttpServletRequest httpRequest) {
-
+             email.sendEmail("armanbarooni@gmail.com","Alert","this is for test");
         try {
             String message = (String) httpRequest.getSession().getAttribute("passwordExpire");
             httpRequest.getSession().removeAttribute("passwordExpire");

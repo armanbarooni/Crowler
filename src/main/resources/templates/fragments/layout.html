@@ -36,7 +36,7 @@
             <div>
                 <label class="navbar-brand username-header-label">
                     <a style="text-decoration: none;color: inherit" th:href="@{/}">
-                        سامانه خزشگر
+                        سامانه پویشگر
                     </a>
                 </label>
 
@@ -91,7 +91,6 @@
                         </li>
                     </ul>
                 </div>
-
                 <div sec:authorize="hasAnyRole('ROLE_ORDINARY','ROLE_SUPERVISOR','ROLE_EXPERT','ROLE_MANAGER')">
                     <li data-target="#vulns" id="mngmt-vulns" class="collapsed" onclick="dropdownMenuRs(this)">
                         <a href="#">
@@ -112,6 +111,37 @@
 
                     </ul>
                 </div>
+                <div sec:authorize="hasAnyRole('ROLE_ORDINARY','ROLE_SUPERVISOR','ROLE_EXPERT','ROLE_MANAGER')">
+                    <li data-target="#vulns" id="mngmt" class="collapsed" onclick="dropdownMenuRs(this)">
+                        <a href="#">
+                            مدیریت دارایی
+                            <img class="icons-15" th:src="@{/icons/down.svg}">
+                        </a>
+                    </li>
+                    <ul class="sub-menu collapse" id="asset">
+                        <li sec:authorize="hasAnyRole('ROLE_MANAGER')">
+                            <img class="icons-15" th:src="@{/icons/left.svg}">
+                            <a th:href="@{/ordinary/discovery/assetdiscovery}">جستجوی دارایی ها</a>
+                        </li>
+
+                    </ul>
+                </div>
+                <div sec:authorize="hasAnyRole('ROLE_MANAGER')">
+                    <li data-target="#vulns" id="mngmt-alaram" class="collapsed" onclick="dropdownMenuRs(this)">
+                        <a href="#">
+                            اعلان ها
+                            <img class="icons-15" th:src="@{/icons/down.svg}">
+                        </a>
+                    </li>
+                    <ul class="sub-menu collapse" id="alaram">
+                        <li sec:authorize="hasAnyRole('ROLE_MANAGER')">
+                            <img class="icons-15" th:src="@{/icons/left.svg}">
+                            <a th:href="@{/alarm/Vendors}">بسته های دنبال شده</a>
+                        </li>
+
+                    </ul>
+                </div>
+
 
 
 

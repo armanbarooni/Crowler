@@ -1,5 +1,6 @@
 package com.atlas.crawler.core;
 
+
 import com.atlas.crawler.controller.ReportController;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.json.simple.parser.JSONParser;
@@ -36,11 +37,7 @@ public class Fedora extends  Thread {
     }
     public  void  Tenable (int iii) throws InterruptedException
     {
-        if(iii==162319)
-        {
 
-            iii=iii;
-        }
         String uuu="";
         try {
             uuu="https://www.tenable.com/plugins/nessus/"+String.valueOf(iii)  ;
@@ -398,13 +395,13 @@ try {
 
             for (int iii = Integer.valueOf(Tedad); iii >= vuln_id; iii = iii - 1) {
                 int finalIii = iii;
-/*
+
                     try {
                         Tenable(finalIii);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-*/
+/*
 
                 Runnable r = new Runnable() {
                     public void run() {
@@ -416,6 +413,8 @@ try {
                     }
                 };
                 general.pool.execute(r);
+                */
+
             }
 
 
@@ -522,8 +521,9 @@ try {
                         numberofcveinjson=numberofcveinjson+1;
 
                         int finalNumberofcveinjson = numberofcveinjson;
+                        GetEveryThingOfCVE(finalCVEObject,null,null,null,null,null,null, finalNumberofcveinjson);
 
-                        Runnable r = new Runnable() {
+        /*                Runnable r = new Runnable() {
                             public void run() {
                                 try {
 
@@ -546,7 +546,7 @@ try {
                             }
                         };
                         general.  pool.execute(r);
-
+*/
 
                     }
                 }
@@ -830,6 +830,8 @@ try {
     }
     public  void recenet() throws SQLException {
 
+
+
             String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
             Path Path = FileSystems.getDefault().getPath("./download/download.zip");
 
@@ -947,7 +949,7 @@ try {
                 if (rref.contains("all"))
                     Lyear = 2002;
                 else
-                    Lyear = Integer.valueOf(year);
+                    Lyear = Integer.valueOf(year)-2;
 
                 for (int i = Lyear; i <= year; i++) {
                     try {
@@ -1115,44 +1117,6 @@ try {
 
         return destFile;
     }
-    public void setCutTime(String  reference) throws SQLException,IOException,ParseException{
-        if (general.FedoraCurrent_Time_Checking == true)
-        {
-            Connection MyConnection = null;
-            PreparedStatement MyStatement = null;
-            ResultSet RS_Last_CVE = null;
-            general.FedoraCurrent_Time_Checking = false;
-            try {
-                MyConnection = connection;
-                MyStatement = MyConnection.prepareStatement("select max(updated_at) from vulns where distro in (select id from lookups where val=?) and reference_list=?");
-                MyStatement.setString(1, "Fedora");
-                MyStatement.setString(2, reference);
-                RS_Last_CVE = MyStatement.executeQuery();
-                if (RS_Last_CVE.next()) {
-                    general.Long_Date = (RS_Last_CVE.getLong("max") * 1000);
-                    if (general.Long_Date == 0){
-                        general.Long_Date = 1609462800000L;
-                    }
-                    else {
-                        general.Long_Date = general.Long_Date - general.CentosDay * 86400000;
-                    }
-                }
-                else {
-                    general.Long_Date = 1609462800000L;
-                }
-                general.Cut_Time=new Date(general.Long_Date);
-            }catch (Exception e){
-            }
-            finally {
-                try {
-                    MyStatement.close();
-                    RS_Last_CVE.close();
-                }catch (Exception e){
-                }
-            }
-        }
-        else return;
-    }
     public   void AnalyzeEachCVE( Document BugzillaFirstPageDoc, Document EachSummaryDoc, Element CVEElement, String EachSummaryLink, CVE cve,String reference) {
         try {
             GetEveryThingOfCVE(null,EachSummaryLink, CVEElement, EachSummaryDoc,  BugzillaFirstPageDoc, cve,reference,0);
@@ -1177,7 +1141,7 @@ System.out.println("--------------   getEveryThing"+ CVEObject.CVEName +"       
             try {
 try {
 
-    Document test =general. getDocument2("https://nvd.nist.gov/vuln/detail/"+EachSummaryLink+"/cpes?expandCpeRanges=true");
+    Document test =general. getDocument2("https://nvd.nist.gov/vuln/detail/"+EachSummaryLink);
    String tet2=test.toString();
     Element test2=test.getElementById("cveTreeJsonDataHidden");
     String test3=test2.getElementsByAttribute("value").val();

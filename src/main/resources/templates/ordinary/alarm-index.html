@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="fragments/layout.html :: header"></th:block>
+    <meta charset="UTF-8">
+    <title>اسکن شبکه</title>
+    <meta th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<div th:replace="fragments/layout :: navigation"></div>
+<div th:replace="fragments/layout :: menu"></div>
+<div class="tab-main  tab-margin-top tab-margin-right col-lg-10 offset-lg-2 col-md-10 offset-md-2  col-sm-12 offset-sm-0 col-12 offset-0">
+        <div class="card card2">
+            <div class="card-header card2-header">
+                <img class="icons-18" th:src="@{/icons/plus-solid.png}">
+                <label>جست و جو : </label>
+            </div>
+
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="card-body card2-body">
+                <form th:action="@{/ordinary/discovery/nmap-downlaod}" method="post" role="form">
+        <div class="row">
+
+            <div class="form-group col-md-8 col-sm-8 col-xs-12">
+                <label for="input-command" class="add-font">بخشی از نام وندور  :</label>
+                <input dir="ltr"  type="text" id="input-command" class="form-control add-font" placeholder="" >
+            </div>
+
+            <div class="form-group float-left col-md-4 col-sm-4 col-12">
+                <label for="input-command" style="color: white" class="add-font">.</label>
+                <label id="btn-vendor" class="btn btn-submit form-control add-font" onclick="getData()">
+                    جستجو بر اساس vendor
+                </label>
+                <label id="btn-product" class="btn btn-submit form-control add-font" onclick="getData2()">
+                    جستجو بر اساس product
+                </label>
+                <label id="btn-show" class="btn btn-submit form-control add-font" onclick="getData5()">
+                    نمایش دنبال شده ها
+                </label>
+            </div>
+        </div>
+
+
+                </form>
+
+            </div>
+
+            <div class="col-md-12 col-12 col-sm-12 table-div" >
+                <table class="table table-hover" style="font-family: 'Times New Roman'; font-weight: 600" >
+                    <thead>
+                    <tr>
+                        <th scope="col">ردیف</th>
+                        <th scope="col">نام پروداکت</th>
+                        <th scope="col">نام وندور</th>
+                        <th scope="col">subscribe/unsunbscribe</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody-scan">
+
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+
+</div>
+
+<script th:src="@{/mylocal/persian-date.min.js}"></script>
+<script th:src="@{/mylocal/persian-datepicker.min.js}"></script>
+
+<script>
+    function getData() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/alarm/Find-vendors}]]',
+            type: "post",
+            data: {
+                "Vendor_name": $("#input-command").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["vendorName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["count"] + "</td>";
+                    output += "<td><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\" onclick=\"getData4('" + respone[i]["vendorName"] + "')\"></td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+ function getData2() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/alarm/Find-products}]]',
+            type: "post",
+            data: {
+                "Vendor_name": $("#input-command").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["vendorName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["count"] + "</td>";
+                    output += "<td><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\" onclick=\"getData3('" + respone[i]["vendorName"] + "')\"></td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+function getData3(p1) {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/alarm/add-products}]]',
+            type: "post",
+            data: {
+                "Vendor_name": $("#input-command").val(),
+                "Vendor_name2": p1,
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["vendorName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["count"] + "</td>";
+                    output += "<td><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\" onclick=\"getData3('" + respone[i]["vendorName"] + "')\"></td>";
+
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+
+    function getData4(p1) {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/alarm/add-products2}]]',
+            type: "post",
+            data: {
+                "Vendor_name": $("#input-command").val(),
+                "product_name": p1,
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["vendorName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["count"] + "</td>";
+                    output += "<td><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\" onclick=\"getData4('" + respone[i]["vendorName"] + "')\"></td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+function getData5() {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/alarm/view-subscribed}]]',
+            type: "post",
+            data: {
+                "Vendor_name": $("#input-command").val(),
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["vendorName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["count"] + "</td>";
+                    output += "<td><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\" onclick=\"getData6('" + respone[i]["vendorName"] + "')\"></td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+    function getData6(p1) {
+
+        swal({
+            title: "منتظر دریافت پاسخ از سرور ...",
+            text: "لطفاً منتظر بمانید!",
+            buttons: false,
+            className: "swal-temp"
+        });
+
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        $.ajax({
+            url: '[[@{/alarm/view-subscribed2}]]',
+            type: "post",
+            data: {
+                "Vendor_name":p1,
+                "_csrf": csrfToken
+            },
+            async: true,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (respone) {
+                var body = $('#tbody-scan');
+                var output = "";
+                for (var i = 0; i < respone.length; i++) {
+
+                    output += "<tr dir='ltr'>";
+                    output += "<td dir='ltr'>" + i + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["vendorName"] + "</td>";
+                    output += "<td dir='ltr'>" + respone[i]["count"] + "</td>";
+                    output += "<td><img class=\"icons-18\" src=\"[[@{/icons/clipboard-list-solid-b.png}]]\" onclick=\"getData6('" + respone[i]["vendorName"] + "')\"></td>";
+                    output += "</tr>";
+                }
+                body.html(output);
+                 swal.close();
+
+
+            },
+            error: function (respone) {
+                // swal({
+                //     title: "خطا",
+                //     text: "خطا در دریافت اطلاعات",
+                //     icon: error,
+                //     button: "تایید",
+                //     className: "swal-temp"
+                // });
+            }
+        });
+    }
+
+
+    $('#mngmt-nmap').next().removeClass('collapse');
+
+
+</script>
+<script th:replace="fragments/layout :: menuScript"></script>
+
+</body>
+</html>

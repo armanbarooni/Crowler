@@ -11,6 +11,7 @@ import com.atlas.crawler.core.Nvd;
 import com.atlas.crawler.model.CVE;
 import com.atlas.crawler.model.NMAP;
 import com.atlas.crawler.model.NmapCve;
+import com.atlas.crawler.model.Vendor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -266,7 +267,7 @@ public class Adapter extends Thread{
     }
     public List<NMAP> getAssetDiscovery(String command) throws SQLException {
         try {
-            command="nmap -n -Pn -sS -sV -oN D:\\output.txt "+command;
+            command="nmap  -Pn -sS -sV -oN D:\\output.txt "+command;
             CrawlerApi c= new CrawlerApi(connection);
 
             Collection<List<String>> collectionNMAP = null;
@@ -500,6 +501,139 @@ public class Adapter extends Thread{
 //            throw new RuntimeException();
             return null;
         }
+    }
+    public List<Vendor> getVendor(String name) {
+        try {
+            CrawlerApi c= new CrawlerApi(connection);
+
+            Collection<List<String>> collectionvendor = null;
+
+            collectionvendor =   c.getVendorBaseOnName(name);
+
+            List<Vendor> vendors = convertToVendor(collectionvendor);
+            connection.close();
+            return vendors;
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+//            throw new RuntimeException();
+            return null;
+        }
+    }
+    public List<Vendor> getVendor2(String name) {
+        try {
+            CrawlerApi c= new CrawlerApi(connection);
+
+            Collection<List<String>> collectionvendor = null;
+
+            collectionvendor =   c.getVendorBaseOnName2(name);
+
+            List<Vendor> vendors = convertToVendor(collectionvendor);
+            connection.close();
+            return vendors;
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+//            throw new RuntimeException();
+            return null;
+        }
+    }
+    public List<Vendor> getVendor3(String name,String name2) {
+        try {
+            CrawlerApi c= new CrawlerApi(connection);
+
+            Collection<List<String>> collectionvendor = null;
+
+            collectionvendor =   c.getVendorBaseOnName3(name , name2);
+
+            List<Vendor> vendors = convertToVendor(collectionvendor);
+            connection.close();
+            return vendors;
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+//            throw new RuntimeException();
+            return null;
+        }
+    }
+    public List<Vendor> getVendor4(String name, String pname) {
+        try {
+            CrawlerApi c= new CrawlerApi(connection);
+
+            Collection<List<String>> collectionvendor = null;
+
+            collectionvendor =   c.getVendorBaseOnName4(name,pname);
+
+            List<Vendor> vendors = convertToVendor(collectionvendor);
+            connection.close();
+            return vendors;
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+//            throw new RuntimeException();
+            return null;
+        }
+    }
+    public List<Vendor> getVendor5(String name) {
+        try {
+            CrawlerApi c= new CrawlerApi(connection);
+
+            Collection<List<String>> collectionvendor = null;
+
+            collectionvendor =   c.getVendorBaseOnName5(name);
+
+            List<Vendor> vendors = convertToVendor(collectionvendor);
+            connection.close();
+            return vendors;
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+//            throw new RuntimeException();
+            return null;
+        }
+    }
+    public List<Vendor> getVendor6(String name) {
+        try {
+            CrawlerApi c= new CrawlerApi(connection);
+
+            Collection<List<String>> collectionvendor = null;
+
+            collectionvendor =   c.getVendorBaseOnName6(name);
+
+            List<Vendor> vendors = convertToVendor(collectionvendor);
+            connection.close();
+            return vendors;
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+//            throw new RuntimeException();
+            return null;
+        }
+    }
+
+
+
+    private List<Vendor> convertToVendor(Collection<List<String>> collectionVendor) throws SQLException {
+        List<Vendor> Vendors = new ArrayList<>();
+        Iterator<List<String>> iterator = collectionVendor.iterator();
+        while (iterator.hasNext()){
+            List<String> myList = iterator.next();
+            Vendor vendor = new Vendor();
+
+            vendor.setVendorName(myList.get(0));
+            vendor.setcount(myList.get(1));
+
+
+            Vendors.add(vendor);
+        }
+        connection.close();
+        return Vendors;
     }
 
     public List<NmapCve> getNmapCveBaseOnLastScan() {

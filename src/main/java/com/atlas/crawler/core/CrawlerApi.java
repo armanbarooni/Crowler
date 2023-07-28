@@ -175,6 +175,240 @@ public class CrawlerApi extends Thread {
         }
         return  cvss;
     }
+
+    public  Collection<List<String>> getVendorBaseOnName (String name) throws SQLException {
+        General c= new General(connection);
+
+        Connection myconnection=null;
+        myconnection = connection;
+        PreparedStatement add_asset=null;
+        ResultSet rs=null;
+        /*
+        add_asset=myconnection.prepareStatement("SELECT  t.vendor , count(t.*) cont FROM public.vendor_product_table t\n" +
+                "where t.vendor like '%"+name+"%'\n" +
+                "group by t.vendor\n" +
+                "order by cont desc\n" +
+                "\n") ;*/
+        add_asset=myconnection.prepareStatement("SELECT   t.product as vendor , t.vendor as cont FROM public.vendor_product_table t where t.vendor = ?  and t.product not in \n" +
+                "\t\t\t\t(select sb.product_name from public.subscribed_vendors sb) ");
+        add_asset.setString(1,name);
+        rs=add_asset.executeQuery();
+        List<String>final_list=new ArrayList<>();
+        Collection<List<String>> final_res=new ArrayList<>();
+
+        while (rs.next()) {
+            final_list = new ArrayList<>();
+            String vendor = rs.getString("vendor");
+            String cont=rs.getString("cont");
+            final_list.add(vendor);
+            final_list.add(((String.valueOf(cont))));
+
+            final_res.add(final_list);
+
+        }
+
+        return final_res;
+
+
+    }
+
+
+
+
+    public  Collection<List<String>> getVendorBaseOnName2 (String name) throws SQLException {
+        General c= new General(connection);
+
+        Connection myconnection=null;
+        myconnection = connection;
+        PreparedStatement add_asset=null;
+        ResultSet rs=null;
+        /*
+        add_asset=myconnection.prepareStatement("SELECT  t.vendor , count(t.*) cont FROM public.vendor_product_table t\n" +
+                "where t.vendor like '%"+name+"%'\n" +
+                "group by t.vendor\n" +
+                "order by cont desc\n" +
+                "\n") ;*/
+
+        add_asset=myconnection.prepareStatement("SELECT   t.product as vendor , t.vendor as cont FROM public.vendor_product_table\n" +
+                "t where t.product like '%"+name+"%'  and t.product not in \n" +
+                "\t\t\t\t(select sb.product_name from public.subscribed_vendors sb) ");
+        rs=add_asset.executeQuery();
+        List<String>final_list=new ArrayList<>();
+        Collection<List<String>> final_res=new ArrayList<>();
+
+        while (rs.next()) {
+            final_list = new ArrayList<>();
+            String vendor = rs.getString("vendor");
+            String cont=rs.getString("cont");
+            final_list.add(vendor);
+            final_list.add(((String.valueOf(cont))));
+
+            final_res.add(final_list);
+
+        }
+
+        return final_res;
+
+
+    }
+
+    public  Collection<List<String>> getVendorBaseOnName3 (String name , String name2) throws SQLException {
+        General c= new General(connection);
+
+        Connection myconnection=null;
+        myconnection = connection;
+        PreparedStatement add_asset=null;
+        ResultSet rs=null;
+        add_asset=myconnection.prepareStatement("INSERT INTO public.subscribed_vendors(\n" +
+                "\tproduct_name, user_id, email)\n" +
+                "\tVALUES (?, ?, ?);");
+        add_asset.setString(1,name2);
+
+        add_asset.setInt(2,1);
+
+        add_asset.setString(3,"armanbarooni@gmail.com");
+        add_asset.executeUpdate();
+
+
+
+
+        add_asset=myconnection.prepareStatement("SELECT   t.product as vendor , t.vendor as cont FROM public.vendor_product_table\n" +
+                "t where t.product like '%"+name+"%'  and t.product not in \n" +
+                "\t\t\t\t(select sb.product_name from public.subscribed_vendors sb)   ");
+        rs=add_asset.executeQuery();
+        List<String>final_list=new ArrayList<>();
+        Collection<List<String>> final_res=new ArrayList<>();
+
+        while (rs.next()) {
+            final_list = new ArrayList<>();
+            String vendor = rs.getString("vendor");
+            String cont=rs.getString("cont");
+            final_list.add(vendor);
+            final_list.add(((String.valueOf(cont))));
+
+            final_res.add(final_list);
+
+        }
+
+        return final_res;
+
+
+    }
+    public  Collection<List<String>> getVendorBaseOnName4 (String name,String pname) throws SQLException {
+        General c= new General(connection);
+
+        Connection myconnection=null;
+        myconnection = connection;
+        PreparedStatement add_asset=null;
+        ResultSet rs=null;
+        add_asset=myconnection.prepareStatement("INSERT INTO public.subscribed_vendors(\n" +
+                "\tproduct_name, user_id, email)\n" +
+                "\tVALUES (?, ?, ?);");
+        add_asset.setString(1,pname);
+
+        add_asset.setInt(2,1);
+
+        add_asset.setString(3,"armanbarooni@gmail.com");
+        add_asset.executeUpdate();
+
+
+
+        add_asset=myconnection.prepareStatement("SELECT   t.product as vendor , t.vendor as cont FROM public.vendor_product_table t where t.vendor = ?  and t.product not in \n" +
+                "\t\t\t\t(select sb.product_name from public.subscribed_vendors sb) ");
+        add_asset.setString(1,name);
+        rs=add_asset.executeQuery();
+        List<String>final_list=new ArrayList<>();
+        Collection<List<String>> final_res=new ArrayList<>();
+
+        while (rs.next()) {
+            final_list = new ArrayList<>();
+            String vendor = rs.getString("vendor");
+            String cont=rs.getString("cont");
+            final_list.add(vendor);
+            final_list.add(((String.valueOf(cont))));
+
+            final_res.add(final_list);
+
+        }
+
+        return final_res;
+
+
+    }
+    public  Collection<List<String>> getVendorBaseOnName5 (String name) throws SQLException {
+        General c= new General(connection);
+
+        Connection myconnection=null;
+        myconnection = connection;
+        PreparedStatement add_asset=null;
+        ResultSet rs=null;
+
+
+
+        add_asset=myconnection.prepareStatement("SELECT   t.product as vendor , t.vendor as cont FROM public.vendor_product_table\n" +
+                "                t where  t.product  in \n" +
+                "\t\t\t\t(select sb.product_name from public.subscribed_vendors sb)");
+        rs=add_asset.executeQuery();
+        List<String>final_list=new ArrayList<>();
+        Collection<List<String>> final_res=new ArrayList<>();
+
+        while (rs.next()) {
+            final_list = new ArrayList<>();
+            String vendor = rs.getString("vendor");
+            String cont=rs.getString("cont");
+            final_list.add(vendor);
+            final_list.add(((String.valueOf(cont))));
+
+            final_res.add(final_list);
+
+        }
+
+        return final_res;
+
+
+    }
+
+    public  Collection<List<String>> getVendorBaseOnName6 (String name) throws SQLException {
+        General c= new General(connection);
+
+        Connection myconnection=null;
+        myconnection = connection;
+        PreparedStatement add_asset=null;
+        ResultSet rs=null;
+
+        add_asset=myconnection.prepareStatement("delete from public.subscribed_vendors t where t.product_name=? ");
+        add_asset.setString(1,name);
+
+        add_asset.executeUpdate();
+
+
+        add_asset=myconnection.prepareStatement("SELECT   t.product as vendor , t.vendor as cont FROM public.vendor_product_table\n" +
+                "                t where  t.product  in \n" +
+                "\t\t\t\t(select sb.product_name from public.subscribed_vendors sb)");
+        rs=add_asset.executeQuery();
+        List<String>final_list=new ArrayList<>();
+        Collection<List<String>> final_res=new ArrayList<>();
+
+        while (rs.next()) {
+            final_list = new ArrayList<>();
+            String vendor = rs.getString("vendor");
+            String cont=rs.getString("cont");
+            final_list.add(vendor);
+            final_list.add(((String.valueOf(cont))));
+
+            final_res.add(final_list);
+
+        }
+
+        return final_res;
+
+
+    }
+
+
+
+
+
     public  Collection<List<String>> getNmapCveBaseOnIp (String ip)
     {
         Collection<List<String>> final_res=null;

@@ -142,9 +142,7 @@
             <div class="card-body card2-body">
 
                 <form th:action="@{/supervisor/report/export-reports-list}" method="post" role="form">
-
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-
                     <div class="row">
 
                         <div class="form-group col-md-4 col-sm-4 col-12">
@@ -295,7 +293,6 @@
             url: '[[@{/ordinary/report/reports-list}]]',
             type: "post",
             data: {
-
                 "usev": $("#input-search-usev").val(),
                 "startDate": $("#fromDate").val(),
                 "endDate": $("#toDate").val(),

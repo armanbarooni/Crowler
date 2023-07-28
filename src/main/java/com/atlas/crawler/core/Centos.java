@@ -384,38 +384,7 @@ public class Centos extends  Thread{
     }
 
 
-    public File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
-        File destFile = new File(destinationDir, zipEntry.getName());
-
-        String destDirPath = destinationDir.getCanonicalPath();
-        String destFilePath = destFile.getCanonicalPath();
-
-        if (!destFilePath.startsWith(destDirPath + File.separator)) {
-            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-        }
-
-        return destFile;
-    }
-    public void CheckCurrentTime(Elements RowsInBugzillaFirstPage, Document BugzillaFirstPageDoc) throws SQLException, ParseException {
-        int j=0;
-        Iterator<Element> i = RowsInBugzillaFirstPage.iterator();
-        while (i.hasNext()) {
-
-            try {
-                Element a_Row_of_Bugzilla_List = i.next();
-                if (general.ToDate(a_Row_of_Bugzilla_List, BugzillaFirstPageDoc).before(general.Cut_Time)) {
-                    i.remove();
-                    j++;
-                 //   System.out.println(j);
-                }
-            }catch (Exception e)
-            {
-
-            }
-
-        }
-    }
-    public  void Start(String element1, Document Bugzilla_List,String reference) throws IOException {
+      public  void Start(String element1, Document Bugzilla_List,String reference) throws IOException {
        general. centos_count1_b=general. centos_count1_b+1;
             System.out.println( "Centos->number of packet that will going for proccess: " +general. centos_count1_b +" of  "+general. centos_count_b);
             String Bugzilla_Link_of_Each_Summary = element1;
