@@ -23,170 +23,158 @@ import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-public class Fedora extends  Thread {
-    static final Logger LOGGER = Logger.getLogger(Fedora.class.getName());
-    public String rref="";
 
-    public FileWriter myWriter=null;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+
+public class Fedora extends Thread {
+    static final Logger LOGGER = Logger.getLogger(Fedora.class.getName());
+    public String rref = "";
+
+    public FileWriter myWriter = null;
 
     private General general;
     private Connection connection;
-    public Fedora(Connection connection){
+
+    public Fedora(Connection connection) {
         this.connection = connection;
         general = new General(connection);
     }
-    public  void  Tenable (int iii) throws InterruptedException
-    {
 
-        String uuu="";
+    public void Tenable(int iii) throws InterruptedException {
+
+        String uuu = "";
         try {
-            uuu="https://www.tenable.com/plugins/nessus/"+String.valueOf(iii)  ;
-            Document   tenable = null;
+            uuu = "https://www.tenable.com/plugins/nessus/" + String.valueOf(iii);
+            Document tenable = null;
 
-            tenable =general. getDocument2(uuu);
-            if(uuu.toString().contains("A 404 error occurred."))
-            {
-                System.out.println("was ->  "+String.valueOf(iii));
+            tenable = general.getDocument2(uuu);
+            if (uuu.toString().contains("A 404 error occurred.")) {
+                System.out.println("was ->  " + String.valueOf(iii));
 
-                uuu="https://www.tenable.com/plugins/was/"+String.valueOf(iii)  ;
+                uuu = "https://www.tenable.com/plugins/was/" + String.valueOf(iii);
             }
 
             ///////////////////////////////
-            String ag="";
-            String Agent="";
-            String synp="";
-            String  name="";
-            String CVE="";
-            String soloution="";
-            int ID=-1;
-            String family="";
-            String Datee="";
-            ArrayList<String >  products=new ArrayList<>();
-            ArrayList<String >  vendors=new ArrayList<>();
-            ArrayList<String >  versions=new ArrayList<>();
-            Elements divs=tenable. getElementsByClass("tab-pane active").first().getElementsByClass("col-md-4").first().getElementsByTag("p");
-            int ctn=0;
-            for(Element div : divs)
-            {
-                try{
-                    String object=div.getElementsByTag("strong").first().ownText();
-                    if(object.contains("Agent"))
-                    {
-                      Agent=div.getElementsByTag("span").first().ownText();
+            String ag = "";
+            String Agent = "";
+            String synp = "";
+            String name = "";
+            String CVE = "";
+            String soloution = "";
+            int ID = -1;
+            String family = "";
+            String Datee = "";
+            ArrayList<String> products = new ArrayList<>();
+            ArrayList<String> vendors = new ArrayList<>();
+            ArrayList<String> versions = new ArrayList<>();
+            Elements divs = tenable.getElementsByClass("tab-pane active").first().getElementsByClass("col-md-4").first().getElementsByTag("p");
+            int ctn = 0;
+            for (Element div : divs) {
+                try {
+                    String object = div.getElementsByTag("strong").first().ownText();
+                    if (object.contains("Agent")) {
+                        Agent = div.getElementsByTag("span").first().ownText();
                     }
-                    if(object.contains("Updated"))
-                    {
-                        Datee= div.getElementsByTag("span").first().ownText();
+                    if (object.contains("Updated")) {
+                        Datee = div.getElementsByTag("span").first().ownText();
                     }
 
-                    if(object.contains("Family"))
-                    {
-                        family=div.getElementsByTag("span").first().getElementsByTag("a").first().text();
+                    if (object.contains("Family")) {
+                        family = div.getElementsByTag("span").first().getElementsByTag("a").first().text();
                     }
-                    if(object.contains("CVSS Score Source"))
-                    {
+                    if (object.contains("CVSS Score Source")) {
                         try {
-                            CVE=div.getElementsByTag("span").first().getElementsByTag("a").first().text();
+                            CVE = div.getElementsByTag("span").first().getElementsByTag("a").first().text();
 
-                        }catch (Exception rr)
-                        {
+                        } catch (Exception rr) {
 
                         }
                     }
-                    if(object.contains("CPE"))
-                    {
-                        Elements cpes=div.getElementsByTag("span");
-                        for(Element cpe :cpes)
-                        {
-                        try {
-                            String CPE=cpe.ownText();
-                            String[] parts=CPE.split(":");
-                            if(parts[1].equals("2.3"))
-                            {
-                                vendors.add(parts[3]);
-                                products.add(parts[4]);
-                                try {
-                                    versions.add(parts[5]);
-                                }catch (Exception ee){
-                                    versions.add("");
+                    if (object.contains("CPE")) {
+                        Elements cpes = div.getElementsByTag("span");
+                        for (Element cpe : cpes) {
+                            try {
+                                String CPE = cpe.ownText();
+                                String[] parts = CPE.split(":");
+                                if (parts[1].equals("2.3")) {
+                                    vendors.add(parts[3]);
+                                    products.add(parts[4]);
+                                    try {
+                                        versions.add(parts[5]);
+                                    } catch (Exception ee) {
+                                        versions.add("");
+                                    }
+                                } else {
+                                    vendors.add(parts[2]);
+                                    products.add(parts[3]);
+                                    try {
+                                        versions.add(parts[4]);
+                                    } catch (Exception ee) {
+                                        versions.add("");
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                vendors.add(parts[2]);
-                                products.add(parts[3]);
-                                try {
-                                    versions.add(parts[4]);
-                                }catch (Exception ee){
-                                    versions.add("");
-                                }
+
+                            } catch (Exception jj) {
+                                System.out.println(1 + " " + jj.getMessage());
+
                             }
 
-                        }catch (Exception jj)
-                        {
-                            System.out.println(1+" "+jj.getMessage());
-
-                        }
-
 
                         }
                     }
 
-                }
-                catch (Exception ee)
-                {
-                    System.out.println(2+" "+ee.getMessage());
+                } catch (Exception ee) {
+                    System.out.println(2 + " " + ee.getMessage());
 
                 }
             }
             try {
-                Element synpo=tenable.getElementsByClass("tab-pane active").first().    getElementsByClass("col-md-8").first();
-                Element syn=synpo.getElementsByTag("span").first();
-                synp=syn.text();
-            }catch (Exception el)
-            {
-                System.out.println(3+" "+el.getMessage());
+                Element synpo = tenable.getElementsByClass("tab-pane active").first().getElementsByClass("col-md-8").first();
+                Element syn = synpo.getElementsByTag("span").first();
+                synp = syn.text();
+            } catch (Exception el) {
+                System.out.println(3 + " " + el.getMessage());
 
             }
             try {
-                name=tenable.getElementsByTag("h1").first().text();
+                name = tenable.getElementsByTag("h1").first().text();
 
-            }catch (Exception ec)
-            {
-                System.out.println(4+" "+ec.getMessage());
+            } catch (Exception ec) {
+                System.out.println(4 + " " + ec.getMessage());
 
             }
-                        ////////////////name
+            ////////////////name
             /////////////////ID
-            ID=iii;
+            ID = iii;
             ////////////////////// soloution
             try {
-                Element sol=tenable.getElementsByClass("tab-pane active").first().getElementsByClass("col-md-8").first().getElementsByClass("mb-3").get(2);;
-                Element solo=sol.getElementsByTag("span").first();
-                soloution=solo.text();
-            }catch (Exception yyy)
-            {
-                System.out.println(5+" "+yyy.getMessage());
+                Element sol = tenable.getElementsByClass("tab-pane active").first().getElementsByClass("col-md-8").first().getElementsByClass("mb-3").get(2);
+                ;
+                Element solo = sol.getElementsByTag("span").first();
+                soloution = solo.text();
+            } catch (Exception yyy) {
+                System.out.println(5 + " " + yyy.getMessage());
 
             }
-            Date LastUpdate=null;
-                try {
-                    SimpleDateFormat Formatter1 = new SimpleDateFormat("dd/MM/yyyy");
-                     LastUpdate=Formatter1.parse(Datee);
-                }catch (Exception ll)
-                {
-                    System.out.println(6+" "+ll.getMessage());
+            Date LastUpdate = null;
+            try {
+                SimpleDateFormat Formatter1 = new SimpleDateFormat("dd/MM/yyyy");
+                LastUpdate = Formatter1.parse(Datee);
+            } catch (Exception ll) {
+                System.out.println(6 + " " + ll.getMessage());
 
-                }
+            }
 
-try {
-    System.out.println("addding new tenable   "+iii);
-    general.add_cve_to_database2(ID,Agent,synp,name,CVE,soloution,family,LastUpdate,vendors,products,versions);
+            try {
+                System.out.println("addding new tenable   " + iii);
+                general.add_cve_to_database2(ID, Agent, synp, name, CVE, soloution, family, LastUpdate, vendors, products, versions);
 
-}catch (Exception tt)
-{
-    System.out.println(7+" "+tt.getMessage());
-}
+            } catch (Exception tt) {
+                System.out.println(7 + " " + tt.getMessage());
+            }
 
 
 
@@ -344,10 +332,11 @@ try {
 
 
             }*/
-        }catch (Exception e){
-                System.out.println("fedora->   "+e.getMessage()+ String.valueOf(iii));
+        } catch (Exception e) {
+            System.out.println("fedora->   " + e.getMessage() + String.valueOf(iii));
         }
     }
+    /*
     public void  recent_tenable( ) throws SQLException {
         String Tedad = "";
             String uuu = "https://www.tenable.com/plugins/search?q=cve&sort=newest&page=1";
@@ -401,7 +390,7 @@ try {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-/*
+
 
                 Runnable r = new Runnable() {
                     public void run() {
@@ -413,7 +402,7 @@ try {
                     }
                 };
                 general.pool.execute(r);
-                */
+
 
             }
 
@@ -421,61 +410,61 @@ try {
 
 
     }
-    public    void  allyears (int path) throws InterruptedException {
-        int countt=0;
-        System.out.println("--------------------------------------------"+path);
-        CVE CVEObject=new CVE();
-        CVEObject.Product_name=new ArrayList<>();
-        CVEObject.Product_version=new ArrayList<>();
+    */
+
+    public void allyears(int path) throws InterruptedException {
+        int countt = 0;
+        System.out.println("--------------------------------------------" + path);
+        CVE CVEObject = new CVE();
+        CVEObject.Product_name = new ArrayList<>();
+        CVEObject.Product_version = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
-        int numberofcveinjson=0;
-        try (FileReader reader = new FileReader("./download/nvdcve-1.1-"+String.valueOf(path) +".json")) {
+        int numberofcveinjson = 0;
+        try (FileReader reader = new FileReader("./download/nvdcve-1.1-" + String.valueOf(path) + ".json")) {
             Object obj = jsonParser.parse(reader);
-            org.json.simple.JSONObject cve= (org.json.simple.JSONObject) obj;
-            org.json.simple.JSONArray CVE_Items=(  org.json.simple.JSONArray)cve.get("CVE_Items");
+            org.json.simple.JSONObject cve = (org.json.simple.JSONObject) obj;
+            org.json.simple.JSONArray CVE_Items = (org.json.simple.JSONArray) cve.get("CVE_Items");
             SimpleDateFormat Formatter1 = new SimpleDateFormat("yyyy-MM-dd");
-            int count=0;
-            for ( Object Cve :CVE_Items)
-            {
-                countt=countt+1;
-                 CVEObject=new CVE();
-                CVEObject.Product_name=new ArrayList<>();
-                CVEObject.Product_version=new ArrayList<>();
-                try
-                {
-                    count=count+1;
-                    if(count>-1) {
-                 //       System.err.println(" ttttttttttt -> add ->" + count + " TO database " + Thread.currentThread().getId());
-                        org.json.simple.JSONObject CVE = (  org.json.simple.JSONObject) Cve;
+            int count = 0;
+            for (Object Cve : CVE_Items) {
+                countt = countt + 1;
+                CVEObject = new CVE();
+                CVEObject.Product_name = new ArrayList<>();
+                CVEObject.Product_version = new ArrayList<>();
+                try {
+                    count = count + 1;
+                    if (count > -1) {
+                        //       System.err.println(" ttttttttttt -> add ->" + count + " TO database " + Thread.currentThread().getId());
+                        org.json.simple.JSONObject CVE = (org.json.simple.JSONObject) Cve;
                         String Reported = null;
                         String modified = null;
                         Reported = ((String) CVE.get("publishedDate")).substring(0, 10);
                         CVEObject.BroadcastDate = Formatter1.parse(Reported);
                         modified = ((String) CVE.get("lastModifiedDate")).substring(0, 10);
                         CVEObject.LastUpdate = Formatter1.parse(modified);
-                          org.json.simple.JSONObject cv = (  org.json.simple.JSONObject) CVE.get("cve");
-                          org.json.simple.JSONObject CVE_data_meta = (  org.json.simple.JSONObject) cv.get("CVE_data_meta");
+                        org.json.simple.JSONObject cv = (org.json.simple.JSONObject) CVE.get("cve");
+                        org.json.simple.JSONObject CVE_data_meta = (org.json.simple.JSONObject) cv.get("CVE_data_meta");
 //////////////////////////////////////////////////////////////////
-                        org.json.simple.JSONObject problemtype = (  org.json.simple.JSONObject) cv.get("problemtype");
-                        org.json.simple.JSONArray problemtype_data= (  org.json.simple.JSONArray) problemtype.get("problemtype_data");
-                        org.json.simple.JSONObject des = (  org.json.simple.JSONObject) problemtype_data.get(0);
-                        org.json.simple.JSONArray descriptions = (  org.json.simple.JSONArray) des.get("description");
-                        org.json.simple.JSONObject cwe = (  org.json.simple.JSONObject) descriptions.get(0);
+                        org.json.simple.JSONObject problemtype = (org.json.simple.JSONObject) cv.get("problemtype");
+                        org.json.simple.JSONArray problemtype_data = (org.json.simple.JSONArray) problemtype.get("problemtype_data");
+                        org.json.simple.JSONObject des = (org.json.simple.JSONObject) problemtype_data.get(0);
+                        org.json.simple.JSONArray descriptions = (org.json.simple.JSONArray) des.get("description");
+                        org.json.simple.JSONObject cwe = (org.json.simple.JSONObject) descriptions.get(0);
                         CVEObject.CWE = (String) cwe.get("value");
-                          /////////////////////////////////////////////////////
-                        org.json.simple.JSONObject description = (  org.json.simple.JSONObject) cv.get("description");
-                        org.json.simple.JSONArray description_data = (  org.json.simple.JSONArray) description.get("description_data");
-                        org.json.simple.JSONObject desc = (  org.json.simple.JSONObject) description_data.get(0);
+                        /////////////////////////////////////////////////////
+                        org.json.simple.JSONObject description = (org.json.simple.JSONObject) cv.get("description");
+                        org.json.simple.JSONArray description_data = (org.json.simple.JSONArray) description.get("description_data");
+                        org.json.simple.JSONObject desc = (org.json.simple.JSONObject) description_data.get(0);
                         CVEObject.Desc = (String) desc.get("value");
 ////////////////////////////////////////////
-                        int stop=0;
+                        int stop = 0;
                         CVEObject.CVEName = (String) CVE_data_meta.get("ID");
-                        if(CVEObject.CVEName.equals("CVE-2022-23959"))
-                            stop=stop;
+                        if (CVEObject.CVEName.equals("CVE-2022-23959"))
+                            stop = stop;
                         try {
-                              org.json.simple.JSONObject imapct = (  org.json.simple.JSONObject) CVE.get("impact");
-                              org.json.simple.JSONObject baseMetricV3 = (  org.json.simple.JSONObject) imapct.get("baseMetricV3");
-                              org.json.simple.JSONObject cvssV3 = (  org.json.simple.JSONObject) baseMetricV3.get("cvssV3");
+                            org.json.simple.JSONObject imapct = (org.json.simple.JSONObject) CVE.get("impact");
+                            org.json.simple.JSONObject baseMetricV3 = (org.json.simple.JSONObject) imapct.get("baseMetricV3");
+                            org.json.simple.JSONObject cvssV3 = (org.json.simple.JSONObject) baseMetricV3.get("cvssV3");
                             CVEObject.Distro = "";
                             CVEObject.CVSS = String.valueOf(cvssV3.get("baseScore"));
                             CVEObject.Distro = "";
@@ -493,16 +482,16 @@ try {
                             CVEObject.IntegrityImpact = (String) cvssV3.get("integrityImpact");
                             CVEObject.AvailibilityImpact = (String) cvssV3.get("availabilityImpact");
                         } catch (Exception e) {
-                            org.json.simple.JSONObject imapct = (  org.json.simple.JSONObject) CVE.get("impact");
-                            org.json.simple.JSONObject baseMetricV3 = (  org.json.simple.JSONObject) imapct.get("baseMetricV2");
-                            org.json.simple.JSONObject cvssV3 = (  org.json.simple.JSONObject) baseMetricV3.get("cvssV2");
+                            org.json.simple.JSONObject imapct = (org.json.simple.JSONObject) CVE.get("impact");
+                            org.json.simple.JSONObject baseMetricV3 = (org.json.simple.JSONObject) imapct.get("baseMetricV2");
+                            org.json.simple.JSONObject cvssV3 = (org.json.simple.JSONObject) baseMetricV3.get("cvssV2");
                             CVEObject.CVSS = String.valueOf(cvssV3.get("baseScore"));
                             CVEObject.Distro = "";
                             CVEObject.Comments = "";
                             CVEObject.Platforms = new ArrayList<>();
                             CVEObject.RefferencesLinks = new ArrayList<>();
                             CVEObject.CVSS_details = "NVD-V2";
-                            CVEObject.ImpactType ="";
+                            CVEObject.ImpactType = "";
                             CVEObject.VulnurabiltyType = "";
                             CVEObject.AttackVector = (String) cvssV3.get("accessVector");
                             CVEObject.AccessComplexity = (String) cvssV3.get("accessComplexity");
@@ -515,19 +504,19 @@ try {
                         CVEObject.PatchLink = new ArrayList<>();
                         CVEObject.Date_Changed = CVEObject.LastUpdate;
                         CVEObject.GainedAccess = "";
-                          org.json.simple.JSONObject configurations = (  org.json.simple.JSONObject) CVE.get("configurations");
+                        org.json.simple.JSONObject configurations = (org.json.simple.JSONObject) CVE.get("configurations");
 
                         com.atlas.crawler.core.CVE finalCVEObject = CVEObject;
-                        numberofcveinjson=numberofcveinjson+1;
+                        numberofcveinjson = numberofcveinjson + 1;
 
                         int finalNumberofcveinjson = numberofcveinjson;
-                        GetEveryThingOfCVE(finalCVEObject,null,null,null,null,null,null, finalNumberofcveinjson);
+                        //GetEveryThingOfCVE(finalCVEObject, null, null, null, null, null, null, finalNumberofcveinjson);
 
-        /*                Runnable r = new Runnable() {
+                        Runnable r = new Runnable() {
                             public void run() {
                                 try {
 
-                        GetEveryThingOfCVE(finalCVEObject,null,null,null,null,null,null, finalNumberofcveinjson);
+                                    GetEveryThingOfCVE2(finalCVEObject, null, null, finalNumberofcveinjson, Cve);
 
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -545,19 +534,17 @@ try {
 
                             }
                         };
-                        general.  pool.execute(r);
-*/
+                        general.pool.execute(r);
+
 
                     }
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                 }
             }
-            CVEObject=null;
+            CVEObject = null;
 
-             jsonParser =null;
-             System.gc();
+            jsonParser = null;
+            System.gc();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -567,6 +554,8 @@ try {
             e.printStackTrace();
         }
     }
+
+    /*
     public    void  allyears_tenable (int path) throws InterruptedException {
         int countt=0;
         System.out.println("--------------------------------------------"+path);
@@ -604,7 +593,7 @@ try {
                             public void run() {
                                 try {
 
-                                   Get_Tenable_by_cve(finalCVEID);
+                                  // Get_Tenable_by_cve(finalCVEID);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -631,6 +620,9 @@ try {
             e.printStackTrace();
         }
     }
+
+     */
+    /*
     public void Get_Tenable_by_cve(String cveName) throws InterruptedException {
         String Tedad = "";
         String uuu = "https://www.tenable.com/cve/"+cveName+"/plugins";
@@ -681,63 +673,68 @@ try {
 
 
     }
-
-    public  void recent_getdata()
-    {
-        int countt=0;
+*/
+    public void recent_getdata() {
+        int countt = 0;
         System.out.println("-------------------------------------------recent");
-        CVE CVEObject=new CVE();
-        CVEObject.Product_name=new ArrayList<>();
-        CVEObject.Product_version=new ArrayList<>();
+        CVE CVEObject = new CVE();
+        CVEObject.Product_name = new ArrayList<>();
+        CVEObject.Product_version = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
-        int numberofcveinjson=0;
+        int numberofcveinjson = 0;
         try (FileReader reader = new FileReader("./download/nvdcve-1.1-modified.json")) {
             Object obj = jsonParser.parse(reader);
-            org.json.simple.JSONObject cve= (org.json.simple.JSONObject) obj;
-            org.json.simple.JSONArray CVE_Items=(  org.json.simple.JSONArray)cve.get("CVE_Items");
+            org.json.simple.JSONObject cve = (org.json.simple.JSONObject) obj;
+            org.json.simple.JSONArray CVE_Items = (org.json.simple.JSONArray) cve.get("CVE_Items");
             SimpleDateFormat Formatter1 = new SimpleDateFormat("yyyy-MM-dd");
-            int count=0;
-            for ( Object Cve :CVE_Items)
-            {
-                countt=countt+1;
-                CVEObject=new CVE();
-                CVEObject.Product_name=new ArrayList<>();
-                CVEObject.Product_version=new ArrayList<>();
-                try
-                {
-                    count=count+1;
-                    if(count>-1) {
+            int count = 0;
+            int testarman=0;
+            for (Object Cve : CVE_Items) {
+                countt = countt + 1;
+                CVEObject = new CVE();
+                CVEObject.Product_name = new ArrayList<>();
+                CVEObject.Product_version = new ArrayList<>();
+                try {
+                    count = count + 1;
+                    testarman++;
+                    if (count > -1) {
+                        System.out.println(count);
                         //       System.err.println(" ttttttttttt -> add ->" + count + " TO database " + Thread.currentThread().getId());
-                        org.json.simple.JSONObject CVE = (  org.json.simple.JSONObject) Cve;
+                        org.json.simple.JSONObject CVE = (org.json.simple.JSONObject) Cve;
                         String Reported = null;
                         String modified = null;
+                        if (count==65)
+                            count=count;
                         Reported = ((String) CVE.get("publishedDate")).substring(0, 10);
                         CVEObject.BroadcastDate = Formatter1.parse(Reported);
                         modified = ((String) CVE.get("lastModifiedDate")).substring(0, 10);
                         CVEObject.LastUpdate = Formatter1.parse(modified);
-                        org.json.simple.JSONObject cv = (  org.json.simple.JSONObject) CVE.get("cve");
-                        org.json.simple.JSONObject CVE_data_meta = (  org.json.simple.JSONObject) cv.get("CVE_data_meta");
-//////////////////////////////////////////////////////////////////
-                        org.json.simple.JSONObject problemtype = (  org.json.simple.JSONObject) cv.get("problemtype");
-                        org.json.simple.JSONArray problemtype_data= (  org.json.simple.JSONArray) problemtype.get("problemtype_data");
-                        org.json.simple.JSONObject des = (  org.json.simple.JSONObject) problemtype_data.get(0);
-                        org.json.simple.JSONArray descriptions = (  org.json.simple.JSONArray) des.get("description");
-                        org.json.simple.JSONObject cwe = (  org.json.simple.JSONObject) descriptions.get(0);
-                        CVEObject.CWE = (String) cwe.get("value");
+                        org.json.simple.JSONObject cv = (org.json.simple.JSONObject) CVE.get("cve");
+                        org.json.simple.JSONObject CVE_data_meta = (org.json.simple.JSONObject) cv.get("CVE_data_meta");
+                        CVEObject.CVEName = (String) CVE_data_meta.get("ID");
+                        //////////////////////////////////////////////////////////////////
+                        org.json.simple.JSONObject problemtype = (org.json.simple.JSONObject) cv.get("problemtype");
+                        org.json.simple.JSONArray problemtype_data = (org.json.simple.JSONArray) problemtype.get("problemtype_data");
+                        org.json.simple.JSONObject des = (org.json.simple.JSONObject) problemtype_data.get(0);
+                        org.json.simple.JSONArray descriptions = (org.json.simple.JSONArray) des.get("description");
+                        if(!descriptions.isEmpty())
+                        {
+                            org.json.simple.JSONObject cwe = (org.json.simple.JSONObject) descriptions.get(0);
+                            CVEObject.CWE = (String) cwe.get("value");
+                        }
                         /////////////////////////////////////////////////////
-                        org.json.simple.JSONObject description = (  org.json.simple.JSONObject) cv.get("description");
-                        org.json.simple.JSONArray description_data = (  org.json.simple.JSONArray) description.get("description_data");
-                        org.json.simple.JSONObject desc = (  org.json.simple.JSONObject) description_data.get(0);
+                        org.json.simple.JSONObject description = (org.json.simple.JSONObject) cv.get("description");
+                        org.json.simple.JSONArray description_data = (org.json.simple.JSONArray) description.get("description_data");
+                        org.json.simple.JSONObject desc = (org.json.simple.JSONObject) description_data.get(0);
                         CVEObject.Desc = (String) desc.get("value");
 ////////////////////////////////////////////
-                        int stop=0;
+                        int stop = 0;
                         CVEObject.CVEName = (String) CVE_data_meta.get("ID");
-                        if(CVEObject.CVEName.equals("CVE-2022-23959"))
-                            stop=stop;
+
                         try {
-                            org.json.simple.JSONObject imapct = (  org.json.simple.JSONObject) CVE.get("impact");
-                            org.json.simple.JSONObject baseMetricV3 = (  org.json.simple.JSONObject) imapct.get("baseMetricV3");
-                            org.json.simple.JSONObject cvssV3 = (  org.json.simple.JSONObject) baseMetricV3.get("cvssV3");
+                            org.json.simple.JSONObject imapct = (org.json.simple.JSONObject) CVE.get("impact");
+                            org.json.simple.JSONObject baseMetricV3 = (org.json.simple.JSONObject) imapct.get("baseMetricV3");
+                            org.json.simple.JSONObject cvssV3 = (org.json.simple.JSONObject) baseMetricV3.get("cvssV3");
                             CVEObject.Distro = "";
                             CVEObject.CVSS = String.valueOf(cvssV3.get("baseScore"));
                             CVEObject.Distro = "";
@@ -755,16 +752,16 @@ try {
                             CVEObject.IntegrityImpact = (String) cvssV3.get("integrityImpact");
                             CVEObject.AvailibilityImpact = (String) cvssV3.get("availabilityImpact");
                         } catch (Exception e) {
-                            org.json.simple.JSONObject imapct = (  org.json.simple.JSONObject) CVE.get("impact");
-                            org.json.simple.JSONObject baseMetricV3 = (  org.json.simple.JSONObject) imapct.get("baseMetricV2");
-                            org.json.simple.JSONObject cvssV3 = (  org.json.simple.JSONObject) baseMetricV3.get("cvssV2");
+                            org.json.simple.JSONObject imapct = (org.json.simple.JSONObject) CVE.get("impact");
+                            org.json.simple.JSONObject baseMetricV3 = (org.json.simple.JSONObject) imapct.get("baseMetricV2");
+                            org.json.simple.JSONObject cvssV3 = (org.json.simple.JSONObject) baseMetricV3.get("cvssV2");
                             CVEObject.CVSS = String.valueOf(cvssV3.get("baseScore"));
                             CVEObject.Distro = "";
                             CVEObject.Comments = "";
                             CVEObject.Platforms = new ArrayList<>();
                             CVEObject.RefferencesLinks = new ArrayList<>();
                             CVEObject.CVSS_details = "NVD-V2";
-                            CVEObject.ImpactType ="";
+                            CVEObject.ImpactType = "";
                             CVEObject.VulnurabiltyType = "";
                             CVEObject.AttackVector = (String) cvssV3.get("accessVector");
                             CVEObject.AccessComplexity = (String) cvssV3.get("accessComplexity");
@@ -777,18 +774,28 @@ try {
                         CVEObject.PatchLink = new ArrayList<>();
                         CVEObject.Date_Changed = CVEObject.LastUpdate;
                         CVEObject.GainedAccess = "";
-                        org.json.simple.JSONObject configurations = (  org.json.simple.JSONObject) CVE.get("configurations");
+                        org.json.simple.JSONObject configurations = (org.json.simple.JSONObject) CVE.get("configurations");
 
                         com.atlas.crawler.core.CVE finalCVEObject = CVEObject;
-                        numberofcveinjson=numberofcveinjson+1;
+                        numberofcveinjson = numberofcveinjson + 1;
 
                         int finalNumberofcveinjson = numberofcveinjson;
-                     //   System.out.println(  numberofcveinjson=numberofcveinjson+1);
+                        System.out.println(finalCVEObject.CVEName);
+/*
+                        if (CVEObject.CVEName.equals("CVE-2025-22224"))
+                            GetEveryThingOfCVE2(finalCVEObject, null, null, finalNumberofcveinjson, Cve);
+*/
+
+                        //   GetEveryThingOfCVE(finalCVEObject, null, null, null, null, null, null, finalNumberofcveinjson);
+                        //GetEveryThingOfCVE2(finalCVEObject,null,null,finalNumberofcveinjson,Cve);
+                        //   System.out.println(  numberofcveinjson=numberofcveinjson+1);
+
+
                         Runnable r = new Runnable() {
                             public void run() {
                                 try {
 
-                                    GetEveryThingOfCVE(finalCVEObject,null,null,null,null,null,null, finalNumberofcveinjson);
+                                    GetEveryThingOfCVE2(finalCVEObject, null, null, finalNumberofcveinjson, Cve);
 
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -806,18 +813,16 @@ try {
 
                             }
                         };
-                        general.  pool.execute(r);
+                        general.pool.execute(r);
 
 
                     }
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                 }
             }
-            CVEObject=null;
+            CVEObject = null;
 
-            jsonParser =null;
+            jsonParser = null;
             System.gc();
 
         } catch (FileNotFoundException e) {
@@ -828,72 +833,72 @@ try {
             e.printStackTrace();
         }
     }
-    public  void recenet() throws SQLException {
+
+    public void recenet() throws SQLException {
 
 
+        String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
+        Path Path = FileSystems.getDefault().getPath("./download/download.zip");
 
-            String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
-            Path Path = FileSystems.getDefault().getPath("./download/download.zip");
 
-
-                try {
-                    String path_r=System.getProperty("user.dir")+"\\download\\recent.zip";
-                    URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-modified.json.zip");
-                    URLConnection con;
-                    DataInputStream dis;
-                    FileOutputStream fos;
-                    byte[] fileData;
-                    con = url.openConnection(); // open the url connection.
-                    dis = new DataInputStream(con.getInputStream());
-                    fileData = new byte[con.getContentLength()];
-                    for (int q = 0; q < fileData.length; q++) {
-                        fileData[q] = dis.readByte();
+        try {
+            String path_r = System.getProperty("user.dir") + "\\download\\recent.zip";
+            URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-modified.json.zip");
+            URLConnection con;
+            DataInputStream dis;
+            FileOutputStream fos;
+            byte[] fileData;
+            con = url.openConnection(); // open the url connection.
+            dis = new DataInputStream(con.getInputStream());
+            fileData = new byte[con.getContentLength()];
+            for (int q = 0; q < fileData.length; q++) {
+                fileData[q] = dis.readByte();
+            }
+            dis.close(); // close the data input stream
+            fos = new FileOutputStream(new File(path_r)); //FILE Save Location goes here
+            fos.write(fileData);  // write out the file we want to save.
+            fos.close(); // close the output stream writer
+            File destDir = new File(System.getProperty("user.dir") + "\\download\\");
+            byte[] buffer = new byte[1024];
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(path_r));
+            ZipEntry zipEntry = zis.getNextEntry();
+            while (zipEntry != null) {
+                File newFile = newFile(destDir, zipEntry);
+                if (zipEntry.isDirectory()) {
+                    if (!newFile.isDirectory() && !newFile.mkdirs()) {
+                        throw new IOException("Failed to create directory " + newFile);
                     }
-                    dis.close(); // close the data input stream
-                    fos = new FileOutputStream(new File(path_r ) ); //FILE Save Location goes here
-                    fos.write(fileData);  // write out the file we want to save.
-                    fos.close(); // close the output stream writer
-                    File destDir = new File(System.getProperty("user.dir")+"\\download\\");
-                    byte[] buffer = new byte[1024];
-                    ZipInputStream zis = new ZipInputStream(new FileInputStream(path_r));
-                    ZipEntry zipEntry = zis.getNextEntry();
-                    while (zipEntry != null) {
-                        File newFile = newFile(destDir, zipEntry);
-                        if (zipEntry.isDirectory()) {
-                            if (!newFile.isDirectory() && !newFile.mkdirs()) {
-                                throw new IOException("Failed to create directory " + newFile);
-                            }
-                        } else {
-                            // fix for Windows-created archives
-                            File parent = newFile.getParentFile();
-                            if (!parent.isDirectory() && !parent.mkdirs()) {
-                                throw new IOException("Failed to create directory " + parent);
-                            }
-
-                            // write file content
-                            fos = new FileOutputStream(newFile);
-                            int len;
-                            while ((len = zis.read(buffer)) > 0) {
-                                fos.write(buffer, 0, len);
-                            }
-                            fos.close();
-                        }
-                        zipEntry = zis.getNextEntry();
+                } else {
+                    // fix for Windows-created archives
+                    File parent = newFile.getParentFile();
+                    if (!parent.isDirectory() && !parent.mkdirs()) {
+                        throw new IOException("Failed to create directory " + parent);
                     }
-                    zis.closeEntry();
-                    zis.close();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+
+                    // write file content
+                    fos = new FileOutputStream(newFile);
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                    fos.close();
                 }
+                zipEntry = zis.getNextEntry();
+            }
+            zis.closeEntry();
+            zis.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
-        recent_tenable( );
+        // recent_tenable( );
 
-       recent_getdata();
+        recent_getdata();
 
 
         Connection MyConnection = null;
@@ -902,12 +907,12 @@ try {
         MyConnection = connection;
         PreparedStatement MyStatement2 = null;
         PreparedStatement MyStatement3 = null;
-        try{
+        try {
             MyStatement2 = MyConnection.prepareStatement("insert into vendor_product_table(vendor,product)\n" +
                     "select package,product_name from vendor_product on conflict(vendor,product) do nothing");
 
 
-        MyStatement2.executeUpdate();
+            MyStatement2.executeUpdate();
 
             MyStatement3 = MyConnection.prepareStatement("insert into public.\"Tenable_vulns\" (\"vulns_id\",\"tenable_id\")\n" +
                     "select t.id as vulns_id , p.\"ID\" as Tenable_id from vulns t \n" +
@@ -916,16 +921,16 @@ try {
 
 
             MyStatement3.executeUpdate();
-        }catch (Exception eee)
-        {
+        } catch (Exception eee) {
             System.out.println(eee.getMessage());
         }
 
-    System.err.println("All done");
+        System.err.println("All done");
 
     }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public  void run() {
+    public void run() {
         if (ReportController.searchByPackage_flag && ReportController.UseDB) {
             ReportController.general_method = "fedora";
             general.start();
@@ -949,7 +954,7 @@ try {
                 if (rref.contains("all"))
                     Lyear = 2002;
                 else
-                    Lyear = Integer.valueOf(year)-2;
+                    Lyear = Integer.valueOf(year) - 2;
 
                 for (int i = Lyear; i <= year; i++) {
                     try {
@@ -1022,13 +1027,13 @@ try {
                 Calendar instance = Calendar.getInstance();
                 int year = instance.get(Calendar.YEAR);
                 int Lyear = -1;
-                rref="tenable_all";
+                rref = "tenable_all";
                 if (rref.contains("all"))
                     Lyear = 2002;
                 else
                     Lyear = Integer.valueOf(year);
 
-                  for (int i = Lyear; i <= year; i++) {
+                for (int i = Lyear; i <= year; i++) {
                     try {
                         String path_r = System.getProperty("user.dir") + "\\download\\" + Integer.valueOf(i) + ".zip";
                         URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-" + i + ".json.zip");
@@ -1084,19 +1089,19 @@ try {
                     }
                     System.out.println("++++++++++++++++++");
                 }
+                  /*
                 for (int i = year; i >= Lyear; i--) {
                     try {
-                        allyears_tenable(i);
+                    //    allyears_tenable(i);
 
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
+                }*/
 
 
             }
-            if(rref.contains(("recent")))
-            {
+            if (rref.contains(("recent"))) {
                 try {
                     recenet();
                 } catch (SQLException e) {
@@ -1105,7 +1110,8 @@ try {
             }
         }
     }
-    public   File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+
+    public File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
         File destFile = new File(destinationDir, zipEntry.getName());
 
         String destDirPath = destinationDir.getCanonicalPath();
@@ -1117,149 +1123,292 @@ try {
 
         return destFile;
     }
-    public   void AnalyzeEachCVE( Document BugzillaFirstPageDoc, Document EachSummaryDoc, Element CVEElement, String EachSummaryLink, CVE cve,String reference) {
+
+    public void AnalyzeEachCVE(Document BugzillaFirstPageDoc, Document EachSummaryDoc, Element CVEElement, String EachSummaryLink, CVE cve, String reference) {
         try {
-            GetEveryThingOfCVE(null,EachSummaryLink, CVEElement, EachSummaryDoc,  BugzillaFirstPageDoc, cve,reference,0);
+            GetEveryThingOfCVE(null, EachSummaryLink, CVEElement, EachSummaryDoc, BugzillaFirstPageDoc, cve, reference, 0);
         } catch (Exception e) {
             if (e.getMessage() == null) {
                 return;
             }
 
-            }
-        }
-    public   void GetEveryThingOfCVE(CVE CVEObject,String EachSummaryLink, Element CVEElement, Document EachSummaryDoc,  Document BugzillaFirstPageDoc, CVE cve, String ref,int numberofcveinjson) throws Exception {
-        general.c1=general.c1+1;
-System.out.println("--------------   getEveryThing"+ CVEObject.CVEName +"       "+general.c1);
-
-
-      EachSummaryLink=CVEObject.CVEName;
-        Document CVENVD=null;
-        Document CVEDetailsDoc=null;
-        Document tenable=null;
-        Document reconshell=null;
-        String  AccessRedHatDocOfEachCVE=null;
-            try {
-try {
-
-    Document test =general. getDocument2("https://nvd.nist.gov/vuln/detail/"+EachSummaryLink);
-   String tet2=test.toString();
-    Element test2=test.getElementById("cveTreeJsonDataHidden");
-    String test3=test2.getElementsByAttribute("value").val();
-    int counter=0;
-    int strat=    test3.indexOf("cpe:2.3",counter);
-    counter=strat+1;
-    strat=    test3.indexOf("cpe:2.3",counter);
-    int end=test3.indexOf("*",strat+1);
-    String cpe=test3.substring(strat,end);
-    cpe=cpe.substring(10);
-    String prev_ven=cpe.substring(0,cpe.indexOf(':'));
-    cpe=cpe.substring(cpe.indexOf(':')+1);
-    String prev_pack=cpe.substring(0,cpe.indexOf(':'));
-    cpe=cpe.substring(cpe.indexOf(':')+1);
-    ArrayList<String> productname = new ArrayList<>();
-    ArrayList<String> package_name = new ArrayList<>();
-    ArrayList<String> productversion = new ArrayList<>();
-    CVEObject.PackageName.add(prev_ven);
-    CVEObject.Product_version=new ArrayList<>();
-    CVEObject.Product_name=new ArrayList<>();
-    while (true)
-    {
-        try {
-            strat=    test3.indexOf("cpe:2.3",counter);
-            if(strat==-1)
-            {
-                CVEObject.Product_name.add(productname);
-                CVEObject.Product_version.add(productversion);
-                break;
-            }
-            counter=strat+1;
-            end=test3.indexOf("*",strat+1);
-            cpe=test3.substring(strat,end);
-            cpe=cpe.substring(10);
-            String ven=cpe.substring(0,cpe.indexOf(':'));
-            cpe=cpe.substring(cpe.indexOf(':')+1);
-            String pack=cpe.substring(0,cpe.indexOf(':'));
-            int kk=0;
-            if((ven.equals(prev_ven))&&(prev_pack.equals(pack)))
-            {
-                cpe=cpe.substring(cpe.indexOf(':')+1);
-                String ver=cpe.substring(0,cpe.indexOf(':'));
-                productname.add(pack);
-                productversion.add(ver);
-            }
-            else
-            {
-                CVEObject.Product_name.add(productname);
-                CVEObject.Product_version.add(productversion);
-                productname = new ArrayList<>();
-                productversion = new ArrayList<>();
-                prev_ven=ven;
-                prev_pack=pack;
-                counter=strat+1;
-                CVEObject.  PackageName.add(prev_ven);
-            }
-        }catch (Exception eeeee)
-        {
         }
     }
-}catch (Exception new_EE)
-{
-}
+
+    public void extractData(Document doc, CVE cveObject) {
+
+        Element test2 = doc.getElementById("vulnCpeTree");
+        Element config = doc.getElementById("config-div-1");
+
+        while (true) {
+            Elements vulnerableRows = config.select("tr.vulnerable");
+
+            ArrayList<String> products = new ArrayList<>();
+            ArrayList<String> versions = new ArrayList<>();
+
+            for (Element row : vulnerableRows) {
+                Element cpeElement = row.selectFirst("b[data-testid^=vuln-software-cpe]");
+                if (cpeElement != null) {
+                    String cpe = cpeElement.text();
+                    String[] cpeParts = cpe.split(":");
+                    if (cpeParts.length >= 5) {
+                        String vendor = cpeParts[3];
+                        String product = cpeParts[4];
+
+                        if (!cveObject.PackageName.contains(vendor)) {
+                            cveObject.PackageName.add(vendor);
+                        }
+
+                        Elements cpeList = row.select("ul[id^=cpeNamesList] li a i");
+
+                        if (cpeList.isEmpty()) {
+                            products.add(product);
+                            versions.add("*");
+                        } else {
+                            for (Element cpeItem : cpeList) {
+                                String[] cpeItemParts = cpeItem.text().split(":");
+                                if (cpeItemParts.length >= 5) {
+                                    products.add(cpeItemParts[4]);
+                                    versions.add(cpeItemParts[5]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!products.isEmpty()) {
+                cveObject.Product_name.add(products);
+                cveObject.Product_version.add(versions);
+            }
+        }
+        //  return cveObject;
+    }
+
+    public void     GetEveryThingOfCVE2(CVE CVEObject, String EachSummaryLink, String ref, int numberofcveinjson, Object cveItem) throws Exception {
+
+        general.c1 = general.c1 + 1;
+
+        System.out.println("--------------   getEveryThing" + CVEObject.CVEName + "       " + general.c1);
+        EachSummaryLink = CVEObject.CVEName;
+        Document CVENVD = null;
+
+        org.json.simple.JSONObject item = (org.json.simple.JSONObject) cveItem;
+        org.json.simple.JSONObject configurations = (org.json.simple.JSONObject) item.get("configurations");
+        org.json.simple.JSONArray nodes = (org.json.simple.JSONArray) configurations.get("nodes");
+
+        for (Object node : nodes) {
+            org.json.simple.JSONObject nodeObj = (org.json.simple.JSONObject) node;
+            org.json.simple.JSONArray cpes = (org.json.simple.JSONArray) nodeObj.get("cpe_match");
+
+            ArrayList<String> productNames = new ArrayList<>();
+            ArrayList<String> productVersions = new ArrayList<>();
+
+            if (cpes != null && !cpes.isEmpty()) {
+                for (Object cpe : cpes) {
+                    org.json.simple.JSONObject cpeObj = (org.json.simple.JSONObject) cpe;
+                    String cpe23Uri = (String) cpeObj.get("cpe23Uri");
+
+                    if (cpe23Uri != null) {
+                        String[] parts = cpe23Uri.split(":");
+                        if (parts.length >= 5) {
+                            String vendor = parts[3];
+                            String product = parts[4];
+                            String version = parts.length > 5 ? parts[5] : "*";
+
+                            if (!CVEObject.PackageName.contains(vendor)) {
+                                CVEObject.PackageName.add(vendor);
+                            }
+                            productNames.add(product);
+                            productVersions.add(version);
+                        }
+                    }
+                }
+
+            } else {
+                productNames.add("unknown_product");
+                productVersions.add("*");
+            }
+
+            if (!productNames.isEmpty()) {
+                CVEObject.Product_name.add(productNames);
+                CVEObject.Product_version.add(productVersions);
+            }
+        }
+        try {
+            // CVENVD = general.getDocument3("https://nvd.nist.gov/vuln/detail/" + EachSummaryLink);
+        } catch (Exception e) {
+            CVENVD = null;
+        }
+        Bugzilla bugzilla = new Bugzilla(connection);
+        try {
+            //   CVEObject = GetProduct(CVEObject, null, CVENVD, EachSummaryLink);
+            if (CVEObject.Product_name.size() == 0)
+                System.err.println("----------------------------------------empty product  =>" + CVEObject.CVEName);
+        } catch (Exception e) {
+        }
+        CVEObject.Distro = "Fedora";
+        try {
+            CVEObject.RefferencesLinks.add("https://nvd.nist.gov/vuln/detail/" + CVEObject.CVEName);
+        } catch (Exception e) {
+        }
+        if (CVEObject.PackageName.size() == 0) {
+            CVEObject.PackageName.add("Not Clear");
+        }
+        CVEObject.Date_Changed = CVEObject.LastUpdate;
+        CVEObject.Synopsis = "";
+        CVEObject.Family = "";
+        CVEObject.Products_Affected = "";
+        CVEObject.Name = "";
+        CVEObject.Agent = "";
+        general.c2 = general.c2 + 1;
+        System.err.println("+++++++++++++++++++++++  EndofgetEveryThing" + CVEObject.CVEName + "      " + general.c2);
+        general.Print(CVEObject, numberofcveinjson, ref);
+
+
+    }
+
+    public void GetEveryThingOfCVE(CVE CVEObject, String EachSummaryLink, Element CVEElement, Document EachSummaryDoc, Document BugzillaFirstPageDoc, CVE cve, String ref, int numberofcveinjson) throws Exception {
+        general.c1 = general.c1 + 1;
+        System.out.println("--------------   getEveryThing" + CVEObject.CVEName + "       " + general.c1);
+
+
+        EachSummaryLink = CVEObject.CVEName;
+        Document CVENVD = null;
+        Document CVEDetailsDoc = null;
+        try {
+            try {
+
+                //Document test = general.getDocument("https://nvd.nist.gov/vuln/detail/" + "CVE-2021-47517");
+                // CVEObject=
+                //extractData(test, CVEObject);
+             /*   String tet2 = test.toString();
+                Elements vunl=test.getElementsByClass("vulnerable");
+                Element test2 = test.getElementById("cpeNamesList");
+                String test3 = test2.getElementsByAttribute("value").val();
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(test3);*/
+
+/*                for (JsonNode config : rootNode) {
+                    JsonNode containers = config.get("containers");
+                    for (JsonNode container : containers) {
+                        JsonNode cpes = container.get("cpes");
+
+                        for (JsonNode cpe : cpes) {
+                            String cpe23Uri = cpe.get("cpe23Uri").asText();
+                            String[] cpeParts = cpe23Uri.split(":");
+                            if (cpeParts.length >= 5) {
+                                System.out.println("Vendor: " + cpeParts[3]);
+                                System.out.println("Product: " + cpeParts[4]);
+                                System.out.println("Version: " + cpeParts[5]);
+                            }
+                        }
+                    }
+                }*/
+                Document test = general.getDocument2("https://nvd.nist.gov/vuln/detail/" + EachSummaryLink + "/cpes?expandCpeRanges=true");
+                String tet2 = test.toString();
+                Element test2 = test.getElementById("cveTreeJsonDataHidden");
+                String test3 = test2.getElementsByAttribute("value").val();
+                int counter = 0;
+                int strat = test3.indexOf("cpe:2.3", counter);
+                counter = strat + 1;
+                strat = test3.indexOf("cpe:2.3", counter);
+                int end = test3.indexOf("*", strat + 1);
+                String cpe = test3.substring(strat, end);
+                cpe = cpe.substring(10);
+                String prev_ven = cpe.substring(0, cpe.indexOf(':'));
+                cpe = cpe.substring(cpe.indexOf(':') + 1);
+                String prev_pack = cpe.substring(0, cpe.indexOf(':'));
+                cpe = cpe.substring(cpe.indexOf(':') + 1);
+                ArrayList<String> productname = new ArrayList<>();
+                ArrayList<String> package_name = new ArrayList<>();
+                ArrayList<String> productversion = new ArrayList<>();
+                CVEObject.PackageName.add(prev_ven);
+                CVEObject.Product_version = new ArrayList<>();
+                CVEObject.Product_name = new ArrayList<>();
+                while (true) {
+                    try {
+                        strat = test3.indexOf("cpe:2.3", counter);
+                        if (strat == -1) {
+                            CVEObject.Product_name.add(productname);
+                            CVEObject.Product_version.add(productversion);
+                            break;
+                        }
+                        counter = strat + 1;
+                        end = test3.indexOf("*", strat + 1);
+                        cpe = test3.substring(strat, end);
+                        cpe = cpe.substring(10);
+                        String ven = cpe.substring(0, cpe.indexOf(':'));
+                        cpe = cpe.substring(cpe.indexOf(':') + 1);
+                        String pack = cpe.substring(0, cpe.indexOf(':'));
+                        int kk = 0;
+                        if ((ven.equals(prev_ven)) && (prev_pack.equals(pack))) {
+                            cpe = cpe.substring(cpe.indexOf(':') + 1);
+                            String ver = cpe.substring(0, cpe.indexOf(':'));
+                            productname.add(pack);
+                            productversion.add(ver);
+                        } else {
+                            CVEObject.Product_name.add(productname);
+                            CVEObject.Product_version.add(productversion);
+                            productname = new ArrayList<>();
+                            productversion = new ArrayList<>();
+                            prev_ven = ven;
+                            prev_pack = pack;
+                            counter = strat + 1;
+                            CVEObject.PackageName.add(prev_ven);
+                        }
+                    } catch (Exception eeeee) {
+                    }
+                }
+            } catch (Exception new_EE) {
+            }
 //////////////////////
-            } catch (Exception e) {
-            }
-            try {
-            //    CVEDetailsDoc =general. getDocument3("http://www.cvedetails.com/cve/" + EachSummaryLink);
-            }catch (Exception e){
-            }
-            try {
-           //     reconshell =general. getDocument3("https://cve.reconshell.com/cve/" + EachSummaryLink);
-            }catch (Exception e){
-            }
-            try {
-                CVENVD =general. getDocument3("https://nvd.nist.gov/vuln/detail/" + EachSummaryLink);
-            } catch (Exception e) {
-                CVENVD = null;
-            }
-            Bugzilla bugzilla = new Bugzilla(connection);
-            try {
-                CVEObject = GetProduct(CVEObject, CVEDetailsDoc,CVENVD,EachSummaryLink);
-                if(CVEObject.Product_name.size()==0)
-                    System.err.println("----------------------------------------empty product  =>"+CVEObject.CVEName);
-            }catch (Exception e)
-            {
-            }
-            CVEObject.Distro = "Fedora";
-            try {
-                CVEObject.RefferencesLinks.add("https://nvd.nist.gov/vuln/detail/" + CVEObject.CVEName);
-            }catch (Exception e){
-            }
-            if (CVEObject.PackageName.size() == 0) {
-                CVEObject.PackageName.add("Not Clear");
-            }
-                CVEObject.Date_Changed = CVEObject.LastUpdate;
-                CVEObject.Synopsis="";
-                CVEObject.Family="";
-                CVEObject.Products_Affected="";
-                CVEObject.Name="";
-                CVEObject.Agent="";
-        general.c2=general.c2+1;
-        System.err.println("+++++++++++++++++++++++  EndofgetEveryThing"+ CVEObject.CVEName +"      "+general.c2);
-        general.   Print(CVEObject, numberofcveinjson,ref);
+        } catch (Exception e) {
+        }
+
+
+        try {
+            CVENVD = general.getDocument3("https://nvd.nist.gov/vuln/detail/" + EachSummaryLink);
+        } catch (Exception e) {
+            CVENVD = null;
+        }
+        Bugzilla bugzilla = new Bugzilla(connection);
+        try {
+            CVEObject = GetProduct(CVEObject, CVEDetailsDoc, CVENVD, EachSummaryLink);
+            if (CVEObject.Product_name.size() == 0)
+                System.err.println("----------------------------------------empty product  =>" + CVEObject.CVEName);
+        } catch (Exception e) {
+        }
+        CVEObject.Distro = "Fedora";
+        try {
+            CVEObject.RefferencesLinks.add("https://nvd.nist.gov/vuln/detail/" + CVEObject.CVEName);
+        } catch (Exception e) {
+        }
+        if (CVEObject.PackageName.size() == 0) {
+            CVEObject.PackageName.add("Not Clear");
+        }
+        CVEObject.Date_Changed = CVEObject.LastUpdate;
+        CVEObject.Synopsis = "";
+        CVEObject.Family = "";
+        CVEObject.Products_Affected = "";
+        CVEObject.Name = "";
+        CVEObject.Agent = "";
+        general.c2 = general.c2 + 1;
+        System.err.println("+++++++++++++++++++++++  EndofgetEveryThing" + CVEObject.CVEName + "      " + general.c2);
+        general.Print(CVEObject, numberofcveinjson, ref);
 
 
     }
 
-    public   CVE GetProduct(CVE CVEObject , Document CVEDetails ,Document CVENVD,String CVEElement){
+    public CVE GetProduct(CVE CVEObject, Document CVEDetails, Document CVENVD, String CVEElement) {
         try {
 
-            if(CVEObject.Product_name==null )
-            {
-                CveDetails cveDetails=new CveDetails(connection);
-                CVEObject=cveDetails.GetProduct(CVEObject,CVEDetails,CVEElement);
+            if (CVEObject.Product_name == null) {
+                CveDetails cveDetails = new CveDetails(connection);
+                CVEObject = cveDetails.GetProduct(CVEObject, CVEDetails, CVEElement);
             }
-        }catch (Exception e){
-            return  CVEObject;
+        } catch (Exception e) {
+            return CVEObject;
 
         }
         return CVEObject;

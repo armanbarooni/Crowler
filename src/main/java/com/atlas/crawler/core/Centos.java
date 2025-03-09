@@ -153,7 +153,7 @@ public class Centos extends  Thread{
                     }
                     Collections.reverse(bugzila_fedora_list);
                     try {
-                        Bugzilla_All_CVEs_Doc = general.getDocument(StartingURL);
+                        Bugzilla_All_CVEs_Doc = general.getDocument2(StartingURL);
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (InterruptedException e) {
@@ -301,7 +301,7 @@ public class Centos extends  Thread{
                         }
                         Collections.reverse(bugzila_fedora_list);
                         try {
-                            Bugzilla_All_CVEs_Doc = general.getDocument(StartingURL);
+                            Bugzilla_All_CVEs_Doc = general.getDocument2(StartingURL);
                         } catch (IOException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {

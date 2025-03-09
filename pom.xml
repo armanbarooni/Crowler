@@ -87,6 +87,22 @@
 		</dependency>
 
 
+			<!-- Selenium Java -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>4.16.1</version>
+		</dependency>
+
+
+			<!-- WebDriver Manager (برای مدیریت ChromeDriver به‌صورت خودکار) -->
+			<dependency>
+				<groupId>io.github.bonigarcia</groupId>
+				<artifactId>webdrivermanager</artifactId>
+				<version>5.6.0</version>
+			</dependency>
+
+
 
 		<!-- core dependency -->
 
@@ -185,6 +201,9 @@
 			<artifactId>spring-context-support</artifactId>
 
 		</dependency>
+
+
+
 
 	</dependencies>
 

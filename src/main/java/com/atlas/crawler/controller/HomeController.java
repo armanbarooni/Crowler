@@ -37,7 +37,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Authentication auth, Model model, HttpServletRequest httpRequest) {
-             email.sendEmail("armanbarooni@gmail.com","Alert","this is for test");
+            // email.sendEmail("armanbarooni@gmail.com","Alert","this is for test");
         try {
             String message = (String) httpRequest.getSession().getAttribute("passwordExpire");
             httpRequest.getSession().removeAttribute("passwordExpire");

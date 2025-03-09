@@ -204,7 +204,7 @@ public class Adapter extends Thread{
                     for(int i=year-3;i<=year;i++)
                     {
                         String url="https://access.redhat.com/security/security-updates/#/cve?q="+packagee+"&p=1&sort=cve_publicDate%20desc&rows=100&cve_publicDate=%5B"+i+"-01-01T00:00:00.000Z%20TO%20"+i+"-01-01T00:00:00.000Z%2B1YEAR%5D&documentKind=Cve";
-                        other=general.getDocument(url);
+                        other=general.getDocument2(url);
                         try {
                             Elements      RowsInBugzillaFirstPage_index1=other.getElementsByClass("ng-scope").first().getElementsByTag("tr");
                             for(Element element:RowsInBugzillaFirstPage_index1)

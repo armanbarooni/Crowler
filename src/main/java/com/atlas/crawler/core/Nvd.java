@@ -143,7 +143,7 @@ public class Nvd  {
         Document Package_list = null;
         try {
             String url = "https://nvd.nist.gov/vuln/detail/"+CVEElement+"/cpes?expandCpeRanges=true";
-            Package_list =general. getDocument(url);
+            Package_list =general. getDocument2(url);
 
         }
         catch (Exception e) {
