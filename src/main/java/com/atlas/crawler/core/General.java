@@ -17,10 +17,7 @@ import javax.management.Query;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -29,28 +26,26 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Date;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 
+@Component
 
-public class General extends  Thread{
-    public static int counterr=0;
-    public  void run()
-    {
+public class General extends Thread {
+    public static int counterr = 0;
+
+    public void run() {
 
 
         try {
-            if(ReportController.general_method.contains("fedora"))
-            {
-                GetFromDB(iStart,iFinish, "Fedora");
-                searchByPackage(PackageNames,Versions, "Fedora");
-            }
-            else
-            {
-                GetFromDB(iStart,iFinish, "Centos");
-                searchByPackage(PackageNames,Versions, "Centos");
+            if (ReportController.general_method.contains("fedora")) {
+                GetFromDB(iStart, iFinish, "Fedora");
+                searchByPackage(PackageNames, Versions, "Fedora");
+            } else {
+                GetFromDB(iStart, iFinish, "Centos");
+                searchByPackage(PackageNames, Versions, "Centos");
             }
 
         } catch (ParseException e) {
@@ -68,85 +63,81 @@ public class General extends  Thread{
 
     }
 
-    static HashMap<String,JBrowserDriver> driverHashMap=new HashMap<>();
-    public  static   Collection<List<String>> resultrecods=null;
+    static HashMap<String, JBrowserDriver> driverHashMap = new HashMap<>();
+    public static Collection<List<String>> resultrecods = null;
 
-    private static  boolean EC = false;
-    static  int Use_version = 1;
-    static  String reference=null;
+    private static boolean EC = false;
+    static int Use_version = 1;
+    static String reference = null;
     static boolean report = false;
     static boolean ErrataException = false;
 
 
-
-    public   int finder=0;
+    public int finder = 0;
 
 
     static long Long_Date = 0;
     static int ProblemCounter1 = 0;
-    public  static  String  disstro="";
+    public static String disstro = "";
 
     static int ProblemCounter2 = 0;
     static List<String> AddedCVEs = new ArrayList<String>();
     static Date Today;
     static boolean FinishBodhi = false;
     static Date Cut_Time = null;
-    public  static  int fedora_count=0;
-    public static   int centos_count=0;
-    public  static  int fedora_count1=0;
-    public  static  int centos_count1=0;
-    public  static  int fedora_count_b=0;
-    public static   int centos_count_b=0;
-    public  static  int fedora_count1_b=0;
-    public  static  int centos_count1_b=0;
+    public static int fedora_count = 0;
+    public static int centos_count = 0;
+    public static int fedora_count1 = 0;
+    public static int centos_count1 = 0;
+    public static int fedora_count_b = 0;
+    public static int centos_count_b = 0;
+    public static int fedora_count1_b = 0;
+    public static int centos_count1_b = 0;
 
 
-    public  static  int c1=0;
-    public  static  int c2=0;
-    public  static  int c3=0;
-    public  static  int c4=0;
+    public static int c1 = 0;
+    public static int c2 = 0;
+    public static int c3 = 0;
+    public static int c4 = 0;
 
 
-
-
-
-    static final int CentosDay = -1  ;
+    static final int CentosDay = -1;
     static boolean RunFedora = false;
     static boolean RunCentos = true;
     static boolean FedoraCurrent_Time_Checking = true; // loop
-    static  boolean CentosCurrent_Time_Checking = true; // centos
-    static  String iStart = null;
+    static boolean CentosCurrent_Time_Checking = true; // centos
+    static String iStart = null;
     static String iFinish = null;
     public static String PackageNames;
     public static String Versions;
-    public  static boolean isrunung=false;
+    public static boolean isrunung = false;
     static final Logger LOGGER = Logger.getLogger(General.class.getName());
-    public  static   boolean site=false;
+    public static boolean site = false;
     int processors = Runtime.getRuntime().availableProcessors();
-    static String rref="";
-    public     ExecutorService pool = Executors.newFixedThreadPool(processors);
+    static String rref = "";
+    public ExecutorService pool = Executors.newFixedThreadPool(processors);
     private Connection connection;
-    public General(Connection connection){
+
+    public General(Connection connection) {
         this.connection = connection;
     }
 
-    public    boolean netisavail()
-    {
+
+    public boolean netisavail() {
         try {
-            final URL url=new URL("http://www.google.com");
-            final URLConnection conn=url.openConnection();
+            final URL url = new URL("http://www.google.com");
+            final URLConnection conn = url.openConnection();
             conn.connect();
             conn.getInputStream().close();
-            return  true;
-        }catch (IOException e)
-        {
-            return  false;
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
-    public   void download_patch(String link,String directory,String disstro,String ver,char harf){
-        if(disstro.equals("centos") )
-        {
-            String last_ling="https://vault.centos.org/8.3.2011/BaseOS/Source/SPackages/"+link;
+
+    public void download_patch(String link, String directory, String disstro, String ver, char harf) {
+        if (disstro.equals("centos")) {
+            String last_ling = "https://vault.centos.org/8.3.2011/BaseOS/Source/SPackages/" + link;
 
             URL url;
             URLConnection con;
@@ -162,21 +153,18 @@ public class General extends  Thread{
                     fileData[q] = dis.readByte();
                 }
                 dis.close(); // close the data input stream
-                fos = new FileOutputStream(new File(directory+"/"+link)); //FILE Save Location goes here
+                fos = new FileOutputStream(new File(directory + "/" + link)); //FILE Save Location goes here
                 fos.write(fileData);  // write out the file we want to save.
                 fos.close(); // close the output stream writer
-            }
-            catch(Exception m) {
+            } catch (Exception m) {
                 System.out.println(m);
             }
-        }
-        else {
-            String last_ling=null;
-            if(ver.equals("32")){
-                last_ling="https://dl.fedoraproject.org/pub/fedora/linux/updates/32/Everything/SRPMS/Packages/"+harf+"/"+link;
-            }
-            else if(ver.equals("30")){
-                last_ling="https://archives.fedoraproject.org/pub/archive/fedora/linux/updates/30/Everything/SRPMS/Packages/"+harf+"/"+link;
+        } else {
+            String last_ling = null;
+            if (ver.equals("32")) {
+                last_ling = "https://dl.fedoraproject.org/pub/fedora/linux/updates/32/Everything/SRPMS/Packages/" + harf + "/" + link;
+            } else if (ver.equals("30")) {
+                last_ling = "https://archives.fedoraproject.org/pub/archive/fedora/linux/updates/30/Everything/SRPMS/Packages/" + harf + "/" + link;
 
             }
 
@@ -194,40 +182,40 @@ public class General extends  Thread{
                     fileData[q] = dis.readByte();
                 }
                 dis.close(); // close the data input stream
-                fos = new FileOutputStream(new File(directory+"/"+link)); //FILE Save Location goes here
+                fos = new FileOutputStream(new File(directory + "/" + link)); //FILE Save Location goes here
                 fos.write(fileData);  // write out the file we want to save.
                 fos.close(); // close the output stream writer
-            }
-            catch(Exception m) {
+            } catch (Exception m) {
                 System.out.println(m);
             }
         }
 
     }
-    public  void reset_static(){
-        ReportController. wholeIds = new ArrayList<Integer>();
-        ReportController. resultrecods=null;
+
+    public void reset_static() {
+        ReportController.wholeIds = new ArrayList<Integer>();
+        ReportController.resultrecods = null;
         EC = false;
         Use_version = 1;
-        reference=null;
-        ReportController. UseDB = false;
-        ReportController. searchByPackage_flag = false;
+        reference = null;
+        ReportController.UseDB = false;
+        ReportController.searchByPackage_flag = false;
         report = false;
 
         ErrataException = false;
 
         Long_Date = 0;
         ProblemCounter1 = 0;
-        String  disstro="";
+        String disstro = "";
 
         ProblemCounter2 = 0;
         AddedCVEs = new ArrayList<String>();
         FinishBodhi = false;
         Cut_Time = null;
-        int fedora_count=0;
-        int centos_count=0;
-        int fedora_count1=0;
-        int centos_count1=0;
+        int fedora_count = 0;
+        int centos_count = 0;
+        int fedora_count1 = 0;
+        int centos_count1 = 0;
         int CentosDay = 1;
         RunFedora = false;
         RunCentos = true;
@@ -238,21 +226,22 @@ public class General extends  Thread{
 
 
     }
-    public   void datting(Date date,String output)
-    {
-        try{
-            FileWriter fstream = new FileWriter("date.txt",true);
+
+    public void datting(Date date, String output) {
+        try {
+            FileWriter fstream = new FileWriter("date.txt", true);
             BufferedWriter out = new BufferedWriter(fstream);
-            out.write( output+"    " + date+"\n");
+            out.write(output + "    " + date + "\n");
             out.close();
 
-        }catch (Exception e){
+        } catch (Exception e) {
             System.err.println("Error while writing to file: " +
                     e.getMessage());
         }
         return;
     }
-    public  void searchByPackage2(String packageNames, String Versions) throws SQLException, DataFormatException, IOException, InvalidFormatException {
+
+    public void searchByPackage2(String packageNames, String Versions) throws SQLException, DataFormatException, IOException, InvalidFormatException {
 
         Connection MyConnection = null;
         int flag = 0;
@@ -283,13 +272,13 @@ public class General extends  Thread{
                 if (split_version[i].equals("-")) {
                     split_version[i] = "";
                 }
-                subQuery += " select id from product where LOWER(package_name) like LOWER('%"+split_package[i]+"%') and version like '%"+split_version[i]+"%' and distribution like '%" + "" + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
+                subQuery += " select id from product where LOWER(package_name) like LOWER('%" + split_package[i] + "%') and version like '%" + split_version[i] + "%' and distribution like '%" + "" + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
             }
             subQuery = subQuery.substring(0, subQuery.length() - 5);   //this code remove last  union of  subquery
             MyConnection = connection;
             String final_query = "select vulns.id,vulns.package,product.package_name,product.version from vulns,product,product_vulns where product_vulns.package_id=product.id and product_vulns.vulns_id=vulns.id  and  vulns.id in(select vulns_id from product_vulns where package_id in(" + subQuery + "))   and product.id in (select package_id from product_vulns where package_id in  ( " + subQuery + "))  limit 5";
             MyStatement1 = MyConnection.prepareStatement(final_query);
-            PreparedStatement my=MyConnection.prepareStatement(final_query);
+            PreparedStatement my = MyConnection.prepareStatement(final_query);
             ResultSet r = MyStatement1.executeQuery();
             //    String name = CreateName2(distro, distro);
            /* ResultSet t=my.executeQuery();
@@ -301,11 +290,11 @@ public class General extends  Thread{
 
             while (r.next()) {
                 int idNumber = r.getInt("id");
-                String packagename=r.getString("package_name");
-                String version=r.getString("version");
+                String packagename = r.getString("package_name");
+                String version = r.getString("version");
 
 
-                List<String> record = FillExcelRow(Integer.toString(idNumber),disstro);
+                List<String> record = FillExcelRow(Integer.toString(idNumber), disstro);
                 //    record.add(packagename);
                 //      record.add(version);
 
@@ -316,9 +305,6 @@ public class General extends  Thread{
             }
 
             //T
-
-
-
 
 
             if (flag == 1) {
@@ -335,7 +321,7 @@ public class General extends  Thread{
         EC = false;
     }
 
-    public  int WeekDayToNumber(String WeekDay) {
+    public int WeekDayToNumber(String WeekDay) {
         int num = -1;
         switch (WeekDay.toLowerCase()) {
 
@@ -364,6 +350,7 @@ public class General extends  Thread{
         return num;
 
     }
+
     public static String getDownloadPath(String fileName) {
         String downloadDir = System.getProperty("user.dir") + File.separator + "download";
 
@@ -381,53 +368,51 @@ public class General extends  Thread{
         // ساختن مسیر نهایی فایل
         return downloadDir + File.separator + fileName;
     }
-    public  Document getDocument(String url) throws IOException, InterruptedException,java.io.IOException,java.lang.NullPointerException {
-        if(fedora_count1<10)
+
+    public Document getDocument(String url) throws IOException, InterruptedException, java.io.IOException, java.lang.NullPointerException {
+        if (fedora_count1 < 10)
             System.err.println("jbrowser testing...");
-        if(centos_count<10)
+        if (centos_count < 10)
             System.err.println("jbrowser testing...");
 
-        boolean continues=true;
-        Document document=null;
+        boolean continues = true;
+        Document document = null;
 
         JBrowserDriver driver;
-        int counter1=0;
-        while (continues)
-        {
-            continues=false;
+        int counter1 = 0;
+        while (continues) {
+            continues = false;
             try {
 
-                driver=new JBrowserDriver(Settings.builder().timezone(Timezone.AMERICA_NEWYORK).build());
+                driver = new JBrowserDriver(Settings.builder().timezone(Timezone.AMERICA_NEWYORK).build());
                 try {
                     driver.get(url);
 
                     document = Jsoup.parse(driver.getPageSource());
-                }catch (Exception e){
+                } catch (Exception e) {
 
                 }
 
                 driver.quit();
             } catch (Exception e) {
 
-                continues=true;
+                continues = true;
                 Thread.sleep(1000);
 
-                counter1=counter1+1;
-                if(counter1==5)
-                {
-                    boolean netisavail=netisavail();
-                    if(netisavail)
-                        continues=false;
-                    counter1=0;
+                counter1 = counter1 + 1;
+                if (counter1 == 5) {
+                    boolean netisavail = netisavail();
+                    if (netisavail)
+                        continues = false;
+                    counter1 = 0;
 
                 }
 
             }
-            if(continues==false)
-            {
-                if(fedora_count1<10)
+            if (continues == false) {
+                if (fedora_count1 < 10)
                     System.err.println("jbrowser testin success 3/4");
-                if(centos_count<10)
+                if (centos_count < 10)
                     System.err.println("jbrowser testin success 3/4");
             }
 
@@ -436,33 +421,32 @@ public class General extends  Thread{
         return document;
 
     }
-    public  Document getDocument2(String url) throws IOException, InterruptedException {
-        int counter1=0;
-        boolean continues=true;
-        Document document=null;
-        while (continues)
-        {
-            continues=false;
+
+    public Document getDocument2(String url) throws IOException, InterruptedException {
+        int counter1 = 0;
+        boolean continues = true;
+        Document document = null;
+        while (continues) {
+            continues = false;
             try {
-                document =  Jsoup.connect(url).maxBodySize(0).timeout(200000).get();;
+                document = Jsoup.connect(url).maxBodySize(0).timeout(200000).get();
+                ;
             } catch (Exception e) {
                 Thread.sleep(1500);
 
-                if(e.toString().contains("No route to host: connect") || e.toString().contains("java.net.UnknownHostException") || e.getMessage().contains("Connection refused")||e.getMessage().contains("org.openqa.selenium.NoSuchElementException: Element not found or does not exist"))
-                {
+                if (e.toString().contains("No route to host: connect") || e.toString().contains("java.net.UnknownHostException") || e.getMessage().contains("Connection refused") || e.getMessage().contains("org.openqa.selenium.NoSuchElementException: Element not found or does not exist")) {
 
-                    continues=true;
+                    continues = true;
                     Thread.sleep(3000);
-                }else {
+                } else {
                     //   e.printStackTrace();
                 }
-                counter1=counter1+1;
-                if(counter1==5)
-                {
-                    boolean netisavail=netisavail();
-                    if(netisavail)
-                        continues=false;
-                    counter1=0;
+                counter1 = counter1 + 1;
+                if (counter1 == 5) {
+                    boolean netisavail = netisavail();
+                    if (netisavail)
+                        continues = false;
+                    counter1 = 0;
 
                 }
 
@@ -472,34 +456,32 @@ public class General extends  Thread{
         return document;
 
     }
-    public  Document getDocument3(String url) throws IOException, InterruptedException {
-        int counter1=0;
-        boolean continues=true;
-        Document document=null;
-        while (continues)
-        {
-            continues=false;
+
+    public Document getDocument3(String url) throws IOException, InterruptedException {
+        int counter1 = 0;
+        boolean continues = true;
+        Document document = null;
+        while (continues) {
+            continues = false;
             try {
-                document =         Jsoup.connect(url).get();
+                document = Jsoup.connect(url).get();
 
             } catch (Exception e) {
                 Thread.sleep(1500);
 
-                if(e.toString().contains("No route to host: connect") || e.toString().contains("java.net.UnknownHostException") || e.getMessage().contains("Connection refused")||e.getMessage().contains("org.openqa.selenium.NoSuchElementException: Element not found or does not exist"))
-                {
+                if (e.toString().contains("No route to host: connect") || e.toString().contains("java.net.UnknownHostException") || e.getMessage().contains("Connection refused") || e.getMessage().contains("org.openqa.selenium.NoSuchElementException: Element not found or does not exist")) {
 
-                    continues=true;
+                    continues = true;
                     Thread.sleep(3000);
-                }else {
+                } else {
                     e.printStackTrace();
                 }
-                counter1=counter1+1;
-                if(counter1==5)
-                {
-                    boolean netisavail=netisavail();
-                    if(netisavail)
-                        continues=false;
-                    counter1=0;
+                counter1 = counter1 + 1;
+                if (counter1 == 5) {
+                    boolean netisavail = netisavail();
+                    if (netisavail)
+                        continues = false;
+                    counter1 = 0;
 
                 }
 
@@ -509,7 +491,7 @@ public class General extends  Thread{
         return document;
     }
 
-    public  Date ToDate(Element A_Row_of_Bugzilla_List, Document Bugzilla_List) throws ParseException {
+    public Date ToDate(Element A_Row_of_Bugzilla_List, Document Bugzilla_List) throws ParseException {
         String Date = A_Row_of_Bugzilla_List.getElementsByClass("bz_changeddate_column").first().ownText();
         String CurrentDateString = Bugzilla_List.getElementsByClass("bz_query_timestamp").first().ownText();
         Date CurrentDate = new SimpleDateFormat("E MMM dd yyyy HH:mm:ss ", Locale.ENGLISH).parse(CurrentDateString);
@@ -541,7 +523,7 @@ public class General extends  Thread{
         return CurrentDate;
     }
 
-    public  boolean Check_Period(String Start, String Finish, Element A_Row_of_Bugzilla_List, Document Bugzilla_List) throws ParseException {
+    public boolean Check_Period(String Start, String Finish, Element A_Row_of_Bugzilla_List, Document Bugzilla_List) throws ParseException {
         if (Start == null && Finish == null) {
             return true;
         }
@@ -555,16 +537,16 @@ public class General extends  Thread{
         }
     }
 
-    public  CVE GetCVEName(CVE Obj, Element element1) {
+    public CVE GetCVEName(CVE Obj, Element element1) {
         Obj.CVEName = element1.ownText();
         return Obj;
     }//filling cve name
 
 
-    public  void Print(CVE Obj, int i,String ref) throws FileNotFoundException, IOException, InvalidFormatException, SQLException, ParseException, DataFormatException {
+    public void Print(CVE Obj, int i, String ref) throws FileNotFoundException, IOException, InvalidFormatException, SQLException, ParseException, DataFormatException {
         int id = 0;
         try {
-            id = Add_CVE_to_Database(Obj,ref,i);
+            id = Add_CVE_to_Database(Obj, ref, i);
         } catch (Exception e) {
 
         }
@@ -576,63 +558,62 @@ public class General extends  Thread{
     }
 
     ;
-    public  int counter = 0;
-    int counnnt=0;
-    public  void add_cve_to_database2(int id,
-                                      String Agent,
-                                      String synp,
-                                      String  name,
-                                      String CVE,
-                                      String soloution,
-                                      String family,
-                                      Date Datee,
-                                      ArrayList<String >  v,
-                                      ArrayList<String >  p,
-                                      ArrayList<String >  ve
+    public int counter = 0;
+    int counnnt = 0;
+
+    public void add_cve_to_database2(int id,
+                                     String Agent,
+                                     String synp,
+                                     String name,
+                                     String CVE,
+                                     String soloution,
+                                     String family,
+                                     Date Datee,
+                                     ArrayList<String> v,
+                                     ArrayList<String> p,
+                                     ArrayList<String> ve
     ) throws SQLException {
         try {
-            System.out.println("ADDTODATABASE->     "+String.valueOf(id));
+            System.out.println("ADDTODATABASE->     " + String.valueOf(id));
             Connection MyConnection = null;
             MyConnection = connection;
 
             PreparedStatement MyStatement = null;
 
-            Long ddate=(Long) (Datee.getTime() / 1000);
-            for(int i=0;i<=v.size()-1;i++)
-            {
-                MyStatement = MyConnection.prepareStatement("insert into \"Tenable\" (\"CVE\" , \"ID\" , \"agent\", \"family\", \"soloution\", \"synopsis\", \"title\", \"date\" ,  \"Vendor\" , \"Products\"  ,\"Versions\") values (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (\"ID\" ,\"CVE\",\"Vendor\",\"Products\",\"Versions\" ) DO UPDATE SET date=? ") ;
-                MyStatement.setString(1,CVE);
-                MyStatement.setInt(2,id);
-                MyStatement.setString(3,Agent);
-                MyStatement.setString(4,family);
-                MyStatement.setString(5,soloution);
-                MyStatement.setString(6,synp);
-                MyStatement.setString(7,name);
-                MyStatement.setLong(8,ddate);
-                MyStatement.setLong(12,ddate);
-                MyStatement.setString(9,v.get(i));
-                MyStatement.setString(10,p.get(i));
-                MyStatement.setString(11,ve.get(i));
+            Long ddate = (Long) (Datee.getTime() / 1000);
+            for (int i = 0; i <= v.size() - 1; i++) {
+                MyStatement = MyConnection.prepareStatement("insert into \"Tenable\" (\"CVE\" , \"ID\" , \"agent\", \"family\", \"soloution\", \"synopsis\", \"title\", \"date\" ,  \"Vendor\" , \"Products\"  ,\"Versions\") values (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (\"ID\" ,\"CVE\",\"Vendor\",\"Products\",\"Versions\" ) DO UPDATE SET date=? ");
+                MyStatement.setString(1, CVE);
+                MyStatement.setInt(2, id);
+                MyStatement.setString(3, Agent);
+                MyStatement.setString(4, family);
+                MyStatement.setString(5, soloution);
+                MyStatement.setString(6, synp);
+                MyStatement.setString(7, name);
+                MyStatement.setLong(8, ddate);
+                MyStatement.setLong(12, ddate);
+                MyStatement.setString(9, v.get(i));
+                MyStatement.setString(10, p.get(i));
+                MyStatement.setString(11, ve.get(i));
 
                 MyStatement.executeUpdate();
 
             }
-            System.out.println("ADD_Done->     "+String.valueOf(id));
+            System.out.println("ADD_Done->     " + String.valueOf(id));
 
-        }catch (Exception e)
-        {
-            System.out.println("general->     "+e.getMessage());
+        } catch (Exception e) {
+            System.out.println("general->     " + e.getMessage());
         }
 
     }
 
-    public  int Add_CVE_to_Database(CVE Obj,String ref,int numberofcveinjson) throws SQLException, DataFormatException, UnsupportedEncodingException {
-        datting(Obj.LastUpdate,Obj.CVEName);
+    public int Add_CVE_to_Database(CVE Obj, String ref, int numberofcveinjson) throws SQLException, DataFormatException, UnsupportedEncodingException {
+        datting(Obj.LastUpdate, Obj.CVEName);
         int ids = 0;
-        General general= new General(connection);
-        System.out.println("ADD  "+ Obj.CVEName +"         "+general.c3);
-        general.c3=general.c3+1;
-        for(int counterr=0;counterr<Obj.PackageName.size();counterr=counterr+1) {
+        General general = new General(connection);
+        System.out.println("ADD  " + Obj.CVEName + "         " + general.c3);
+        general.c3 = general.c3 + 1;
+        for (int counterr = 0; counterr < Obj.PackageName.size(); counterr = counterr + 1) {
             String p_name = Obj.PackageName.get(counterr);
             ArrayList<String> productha = new ArrayList<>();
             ArrayList<String> versionha = new ArrayList<>();
@@ -697,7 +678,7 @@ public class General extends  Thread{
                 MyStatement26.setLong(34, (Long) (Obj.LastUpdate.getTime() / 1000));
 
                 ids = MyStatement26.executeUpdate();
-                } finally {
+            } finally {
                 try {
 
                     MyStatement26.close();
@@ -706,57 +687,164 @@ public class General extends  Thread{
 
                 }
             }
-                try {
-                    PreparedStatement MyStatement2 = null;
-                    PreparedStatement MyStatement3 = null;
-                    int vuln_id=-1;
-                    String query="";
-                    MyStatement2 = MyConnection.prepareStatement("select id from vulns where cve=? and package=?  ORDER BY id DESC  LIMIT 1");
-                    MyStatement2.setString(1,Obj.CVEName);
-                    MyStatement2.setString(2,p_name);
+            try {
+                PreparedStatement MyStatement2 = null;
+                PreparedStatement MyStatement3 = null;
+                int vuln_id = -1;
+                String query = "";
+                MyStatement2 = MyConnection.prepareStatement("select id from vulns where cve=? and package=?  ORDER BY id DESC  LIMIT 1");
+                MyStatement2.setString(1, Obj.CVEName);
+                MyStatement2.setString(2, p_name);
 
-                    ResultSet res = MyStatement2.executeQuery();
+                ResultSet res = MyStatement2.executeQuery();
 
-                    if (res.next()) {
-                        vuln_id = res.getInt("id");
-                    }
-
-                    query=query+ "insert into product (product_name,version,vulns_id) values ";
-                    for(int counterr1=0;counterr1<Obj.Product_name.get(counterr) .size();counterr1=counterr1+1) {
-                            query+= "    (  '"+Obj.Product_name.get(counterr).get(counterr1)+"'  , '"+Obj.Product_version.get(counterr).get(counterr1)+"' , "+vuln_id+")  ,";
-
-                    }
-                    query=query.substring(0,query.length()-1);
-                    query += " ON CONFLICT (product_name,version,vulns_id) DO nothing ";
-                    try {
-                        MyStatement3 = MyConnection.prepareStatement(query);
-                        MyStatement3.executeUpdate();
-                    }catch (Exception e)
-                    {
-                        System.out.println(Obj.CVEName+"  "+ e.getMessage());
-                    }
-
-                } catch (Exception e) {
-
+                if (res.next()) {
+                    vuln_id = res.getInt("id");
                 }
 
+                query = query + "insert into product (product_name,version,vulns_id) values ";
+                for (int counterr1 = 0; counterr1 < Obj.Product_name.get(counterr).size(); counterr1 = counterr1 + 1) {
+                    query += "    (  '" + Obj.Product_name.get(counterr).get(counterr1) + "'  , '" + Obj.Product_version.get(counterr).get(counterr1) + "' , " + vuln_id + ")  ,";
+
+                }
+                query = query.substring(0, query.length() - 1);
+                query += " ON CONFLICT (product_name,version,vulns_id) DO nothing ";
+                try {
+                    MyStatement3 = MyConnection.prepareStatement(query);
+                    MyStatement3.executeUpdate();
+                } catch (Exception e) {
+                    System.out.println(Obj.CVEName + "  " + e.getMessage());
+                }
+
+            } catch (Exception e) {
+
+            }
 
 
-
-
-            productha=null;
-            versionha=null;
+            productha = null;
+            versionha = null;
         }
         System.gc();
-        System.err.println(" EndADD"+ Obj.CVEName +"      "+general.c4);
-        general.c4=general.c4+1;
+        System.err.println(" EndADD" + Obj.CVEName + "      " + general.c4);
+        general.c4 = general.c4 + 1;
         return ids;
-
 
 
     }
 
-    public  String ArrayToString(List<String> Input) {
+    public void bulkInsertCVEs(Connection connection) {
+        System.out.println("⚙️ bulkInsertCVEs executed at: " + java.time.LocalDateTime.now());
+
+        List<CVE> batch = new ArrayList<>();
+        CveQueueManager.cveQueue.drainTo(batch); // تخلیه صف
+
+        if (batch.isEmpty()) return;
+
+        try {
+            connection.setAutoCommit(false);
+
+            for (CVE cve : batch) {
+
+                CVEBulkInserter.insert(connection, cve);
+            }
+
+            connection.commit(); // تأیید همه‌ی عملیات‌ها
+            System.out.println("✅ Bulk insert done. Count: " + batch.size());
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+                System.err.println("❌ Transaction rolled back: " + e.getMessage());
+            } catch (SQLException ex) {
+                System.err.println("❌ Rollback failed: " + ex.getMessage());
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("⚠️ Failed to reset autoCommit: " + e.getMessage());
+            }
+        }
+    }
+
+    public void insertSingleCVE(Connection connection, CVE Obj) throws SQLException {
+        for (int i = 0; i < Obj.PackageName.size(); i++) {
+            String p_name = Obj.PackageName.get(i);
+            List<String> productNames = Obj.Product_name.get(i);
+            List<String> productVersions = Obj.Product_version.get(i);
+
+            // Insert or Update vulns
+            StringBuilder vulnSql = new StringBuilder();
+            vulnSql.append("INSERT INTO vulns (")
+                    .append("CWE, package, cve, reported_at, updated_at, description, patch, ")
+                    .append("attack_vector, access_complexity, cvss, authentication, impact_type, ")
+                    .append("integrity_impact, confidentiality_impact, availability_impact, ")
+                    .append("privileges_require, reference) ")
+                    .append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ")
+                    .append("ON CONFLICT (package, cve) DO UPDATE SET ")
+                    .append("CWE = EXCLUDED.CWE, reported_at = EXCLUDED.reported_at, ")
+                    .append("updated_at = EXCLUDED.updated_at, description = EXCLUDED.description, ")
+                    .append("patch = EXCLUDED.patch, attack_vector = EXCLUDED.attack_vector, ")
+                    .append("access_complexity = EXCLUDED.access_complexity, cvss = EXCLUDED.cvss, ")
+                    .append("authentication = EXCLUDED.authentication, impact_type = EXCLUDED.impact_type, ")
+                    .append("integrity_impact = EXCLUDED.integrity_impact, confidentiality_impact = EXCLUDED.confidentiality_impact, ")
+                    .append("availability_impact = EXCLUDED.availability_impact, privileges_require = EXCLUDED.privileges_require, ")
+                    .append("reference = EXCLUDED.reference");
+
+            try (PreparedStatement ps = connection.prepareStatement(vulnSql.toString())) {
+                ps.setString(1, Obj.CWE);
+                ps.setString(2, p_name);
+                ps.setString(3, Obj.CVEName);
+                ps.setLong(4, Obj.BroadcastDate.getTime() / 1000);
+                ps.setLong(5, Obj.LastUpdate.getTime() / 1000);
+                ps.setString(6, Obj.Desc);
+                ps.setString(7, ArrayToString(Obj.PatchLink));
+                ps.setString(8, Obj.AttackVector);
+                ps.setString(9, Obj.AccessComplexity);
+                ps.setDouble(10, Double.parseDouble(Obj.CVSS));
+                ps.setString(11, Obj.Authentication);
+                ps.setString(12, Obj.ImpactType);
+                ps.setString(13, Obj.IntegrityImpact);
+                ps.setString(14, Obj.ConfidentialityImpact);
+                ps.setString(15, Obj.AvailibilityImpact);
+                ps.setString(16, Obj.PrevilagesRequired);
+                ps.setString(17, ArrayToString(Obj.RefferencesLinks));
+                ps.executeUpdate();
+            }
+
+            // دریافت ID جدید
+            int vuln_id = -1;
+            String idSql = "SELECT id FROM vulns WHERE cve = ? AND package = ? ORDER BY id DESC LIMIT 1";
+            try (PreparedStatement idStmt = connection.prepareStatement(idSql)) {
+                idStmt.setString(1, Obj.CVEName);
+                idStmt.setString(2, p_name);
+                ResultSet rs = idStmt.executeQuery();
+                if (rs.next()) {
+                    vuln_id = rs.getInt("id");
+                }
+            }
+
+            if (vuln_id != -1 && !productNames.isEmpty()) {
+                StringBuilder productSql = new StringBuilder("INSERT INTO product (product_name, version, vulns_id) VALUES ");
+                for (int j = 0; j < productNames.size(); j++) {
+                    productSql.append("('")
+                            .append(productNames.get(j).replace("'", "''"))
+                            .append("','")
+                            .append(productVersions.get(j).replace("'", "''"))
+                            .append("',")
+                            .append(vuln_id)
+                            .append("),");
+                }
+                productSql.setLength(productSql.length() - 1); // remove last comma
+                productSql.append(" ON CONFLICT (product_name, version, vulns_id) DO NOTHING");
+
+                try (PreparedStatement psProduct = connection.prepareStatement(productSql.toString())) {
+                    psProduct.executeUpdate();
+                }
+            }
+        }
+    }
+
+    public String ArrayToString(List<String> Input) {
         Set<String> hs = new HashSet<>();
         hs.addAll(Input);
         Input.clear();
@@ -768,7 +856,7 @@ public class General extends  Thread{
         return listString;
     }
 
-    public  List<String> devideToWeeks(String StartDate, String FinishDate) throws ParseException {
+    public List<String> devideToWeeks(String StartDate, String FinishDate) throws ParseException {
         Date sdate = new SimpleDateFormat("yyyy-MM-dd").parse(StartDate);
         Date fdate = new SimpleDateFormat("yyyy-MM-dd").parse(FinishDate);
         List<String> collection = new ArrayList<String>();
@@ -796,7 +884,7 @@ public class General extends  Thread{
         return collection;
     }
 
-    public  List<String> FillExcelRow(String ID,String distro) throws SQLException, DataFormatException, UnsupportedEncodingException {
+    public List<String> FillExcelRow(String ID, String distro) throws SQLException, DataFormatException, UnsupportedEncodingException {
         List<String> row = new ArrayList<String>();
         Connection MyConnection = null;
         PreparedStatement MyStatement1 = null;
@@ -893,7 +981,7 @@ public class General extends  Thread{
                 row.add(cve_row6.getString("val"));//atv
                 row.add(cve_row7.getString("val"));//acc
                 row.add(cve_row.getString("cvss_v3"));
-                row.add(cve_row.getString("cvss").replace("\n"," __ "));
+                row.add(cve_row.getString("cvss").replace("\n", " __ "));
                 row.add(cve_row8.getString("val"));//aut
                 row.add(cve_row9.getString("val"));//imt
                 row.add(cve_row10.getString("val"));//int
@@ -901,9 +989,9 @@ public class General extends  Thread{
                 row.add(cve_row12.getString("val"));//ava
                 row.add(cve_row13.getString("val"));//pri
                 row.add(cve_row14.getString("val"));//gaa
-                row.add(cve_row.getString("reference").replace("\n"," __ "));
-                row.add(cve_row.getString("comments").replace("\n"," __ "));
-                row.add(cve_row.getString("patch").replace("\n"," __ "));
+                row.add(cve_row.getString("reference").replace("\n", " __ "));
+                row.add(cve_row.getString("comments").replace("\n", " __ "));
+                row.add(cve_row.getString("patch").replace("\n", " __ "));
 
                 MyStatement1.close();
                 ;
@@ -916,7 +1004,7 @@ public class General extends  Thread{
         return row;
     }
 
-    public  List<String> FillExcelRow_2(JsonObject obj, String package_name, String platform) throws SQLException, DataFormatException, UnsupportedEncodingException {
+    public List<String> FillExcelRow_2(JsonObject obj, String package_name, String platform) throws SQLException, DataFormatException, UnsupportedEncodingException {
         List<String> row = new ArrayList<String>();
         row.add(platform); //package
         row.add("");  //distro
@@ -947,7 +1035,7 @@ public class General extends  Thread{
         return row;
     }
 
-    public  void GetFromDB(String iStart, String iFinish, String distro) throws ParseException, SQLException, DataFormatException, IOException, InvalidFormatException {
+    public void GetFromDB(String iStart, String iFinish, String distro) throws ParseException, SQLException, DataFormatException, IOException, InvalidFormatException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         List<String> PeriodCollection = devideToWeeks(iStart, iFinish);
         Connection MyConnection = null;
@@ -972,7 +1060,7 @@ public class General extends  Thread{
                 IDs = Statement.executeQuery();
                 while (IDs.next()) {
                     int idNumber = IDs.getInt("id");
-                    ReportController.    wholeIds.add(idNumber);
+                    ReportController.wholeIds.add(idNumber);
 
                 }
 
@@ -994,7 +1082,7 @@ public class General extends  Thread{
 
     }
 
-    public  String CreateName(String s, Date start, Date finish) {
+    public String CreateName(String s, Date start, Date finish) {
         String Name = "";
         Name = Name + s.toUpperCase() + "-" + "CVE";
         SimpleDateFormat formatter1 = new SimpleDateFormat("ddMMM");
@@ -1004,33 +1092,32 @@ public class General extends  Thread{
         return Name;
     }
 
-    public  String CreateName2(String s, String distro) {
+    public String CreateName2(String s, String distro) {
         String Name = "";
         Name = Name + s.toUpperCase() + "-" + "CVE";
 
         Name = Name + "List";
         Name = Name + "-" + distro;
         Name = Name.toUpperCase();
-        Date date  =new java.util.Date();
-        Name=Name+date.toString();
-        Name=Name.replace(" ","-");
-        Name= Name.replace(":","");
+        Date date = new java.util.Date();
+        Name = Name + date.toString();
+        Name = Name.replace(" ", "-");
+        Name = Name.replace(":", "");
         return Name;
     }
 
 
-    public  void searchByPackage(String packageNames, String Versions, String distro) throws SQLException, DataFormatException, IOException, InvalidFormatException {
+    public void searchByPackage(String packageNames, String Versions, String distro) throws SQLException, DataFormatException, IOException, InvalidFormatException {
 
 
-
-        ReportController.  resultrecods = new ArrayList<>();
+        ReportController.resultrecods = new ArrayList<>();
 
         Connection MyConnection = null;
         int flag = 0;
         PreparedStatement MyStatement1 = null;
         String[] split_package = packageNames.split(",");
         String[] split_version = Versions.split(",");
-        String vv=null;
+        String vv = null;
         try {
             int it = 0;
             int itt = 0;
@@ -1038,7 +1125,7 @@ public class General extends  Thread{
 
             /////////////////////// B: this section is add in version 4.4
             for (int i = 0; i < split_package.length; i++) {
-                vv="";
+                vv = "";
                 split_package[i] = split_package[i].replace("=", "");//B :this code was added to prevent sali
                 split_package[i] = split_package[i].replace(" and ", "");//B :this code was added to prevent sali
 
@@ -1046,7 +1133,7 @@ public class General extends  Thread{
                 split_package[i] = split_package[i].replace("-", "");//B :this code was added to prevent sali
 
                 split_package[i] = split_package[i].replace("'", "");//B :this code was added to prevent sali
-                if(split_version.length>i){
+                if (split_version.length > i) {
                     split_version[i] = split_version[i].replace("'", "");
                     split_version[i] = split_version[i].replace("-", "");
                     split_version[i] = split_version[i].replace("=", "");
@@ -1054,8 +1141,8 @@ public class General extends  Thread{
                     split_version[i] = split_version[i].replace(" and ", "");
 
                     split_version[i] = split_version[i].replace(" ", "");
-                    vv=split_version[i];
-                    if ((Use_version==0)) {
+                    vv = split_version[i];
+                    if ((Use_version == 0)) {
                         vv = "";
                     }
                 }
@@ -1069,42 +1156,39 @@ public class General extends  Thread{
                     split_package[i] = "linux_kernel";
 
                 }
-                if(!vv.equals("")){
+                if (!vv.equals("")) {
                     if (vv.equals("*")) {
                         vv = "";
                     }
                 }
-                if(Use_version==2)
-                {
-                    subQuery += " select id from product where LOWER(package_name) like LOWER('"+split_package[i]+"%')  and version = '"+vv+"' and distribution like '%" + distro + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
+                if (Use_version == 2) {
+                    subQuery += " select id from product where LOWER(package_name) like LOWER('" + split_package[i] + "%')  and version = '" + vv + "' and distribution like '%" + distro + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
 
-                }
-                else
-                    subQuery += " select id from product where LOWER(package_name) like LOWER('"+split_package[i]+"%')  and version like '"+vv+"%' and distribution like '%" + distro + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
+                } else
+                    subQuery += " select id from product where LOWER(package_name) like LOWER('" + split_package[i] + "%')  and version like '" + vv + "%' and distribution like '%" + distro + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
             }
             subQuery = subQuery.substring(0, subQuery.length() - 5);   //this code remove last  union of  subquery
             MyConnection = connection;
             String final_query = "select  vulns.id,vulns.package,product.package_name,product.version from vulns,product,product_vulns where product_vulns.package_id=product.id and product_vulns.vulns_id=vulns.id  and  vulns.id in(select vulns_id from product_vulns where package_id in(" + subQuery + "))   and product.id in (select package_id from product_vulns where package_id in  ( " + subQuery + ")) and cvss_v3 >7 order by package_name limit 10000";
             MyStatement1 = MyConnection.prepareStatement(final_query);
-            PreparedStatement my=MyConnection.prepareStatement(final_query);
+            PreparedStatement my = MyConnection.prepareStatement(final_query);
             ResultSet r = MyStatement1.executeQuery();
             String name = CreateName2(distro, distro);
 
 
             while (r.next()) {
                 int idNumber = r.getInt("id");
-                String packagename=r.getString("package_name");
-                String version=r.getString("version");
+                String packagename = r.getString("package_name");
+                String version = r.getString("version");
 
-                if ( ReportController. wholeIds.contains(idNumber)) {
+                if (ReportController.wholeIds.contains(idNumber)) {
                     flag = 1;
 
-                    List<String> record = FillExcelRow(Integer.toString(idNumber),distro);
-                    if((!record.get(0).contains("Not Clear") && (!record.get(0).contains("vulnerability"))) )
-                    {
+                    List<String> record = FillExcelRow(Integer.toString(idNumber), distro);
+                    if ((!record.get(0).contains("Not Clear") && (!record.get(0).contains("vulnerability")))) {
                         record.add(packagename);
                         record.add(version);
-                        ReportController. resultrecods.add(record);
+                        ReportController.resultrecods.add(record);
 
                     }
 
@@ -1112,7 +1196,6 @@ public class General extends  Thread{
 
 
             }
-
 
 
             if (flag == 1) {
@@ -1130,7 +1213,7 @@ public class General extends  Thread{
         EC = false;
     }
 
-    public  boolean isValidFormat(String format, String value, Locale locale) {
+    public boolean isValidFormat(String format, String value, Locale locale) {
         LocalDateTime ldt = null;
         DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format, locale);
 

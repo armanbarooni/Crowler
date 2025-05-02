@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.ZipEntry;
@@ -26,8 +27,10 @@ import java.util.zip.ZipInputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+@Component
 
 public class Fedora extends Thread {
     static final Logger LOGGER = Logger.getLogger(Fedora.class.getName());
@@ -952,6 +955,7 @@ public class Fedora extends Thread {
                 else
                     Lyear = Integer.valueOf(year) - 2;
 
+/*
                 for (int i = Lyear; i <= year; i++) {
                     try {
                         String path_r =  general.getDownloadPath("" + i + ".zip");;;
@@ -1008,49 +1012,56 @@ public class Fedora extends Thread {
                         e.printStackTrace();
                     }
                 }
-                for (int i = year; i >= Lyear; i--) {
-                    try {
-                        allyears(i);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            String Tedad = "";
-            if (rref.contains("tenablegdfg")) {
-                String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
-                Path Path = FileSystems.getDefault().getPath("./download/download.zip");
-                Date d = new Date();
-                Calendar instance = Calendar.getInstance();
-                int year = instance.get(Calendar.YEAR);
-                int Lyear = -1;
-                rref = "tenable_all";
-                if (rref.contains("all"))
-                    Lyear = 2002;
-                else
-                    Lyear = Integer.valueOf(year);
-
+*/
                 for (int i = Lyear; i <= year; i++) {
                     try {
-                        String path_r = general.getDownloadPath("" + i + ".zip");
+                        String fileName = i + ".zip";
+                        String path_r = general.getDownloadPath(fileName);
+                        File zipFile = new File(path_r);
+
+                        if (zipFile.exists()) {
+                            System.err.println("Already downloaded: " + fileName);
+                            continue;
+                        }
                         URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-" + i + ".json.zip");
-                        URLConnection con;
-                        DataInputStream dis;
-                        FileOutputStream fos;
-                        byte[] fileData;
-                        con = url.openConnection(); // open the url connection.
-                        dis = new DataInputStream(con.getInputStream());
-                        fileData = new byte[con.getContentLength()];
+                        System.err.println("Downloading: " + fileName);
+                        URLConnection con = url.openConnection();
+                        DataInputStream dis = new DataInputStream(con.getInputStream());
+                        byte[] fileData = new byte[con.getContentLength()];
                         for (int q = 0; q < fileData.length; q++) {
                             fileData[q] = dis.readByte();
                         }
-                        dis.close(); // close the data input stream
-                        fos = new FileOutputStream(new File(path_r)); //FILE Save Location goes here
-                        fos.write(fileData);  // write out the file we want to save.
-                        fos.close(); // close the output stream writer
-                        File destDir = new File(System.getProperty("user.dir") + "\\download\\");
+                        dis.close();
+
+                        FileOutputStream fos = new FileOutputStream(zipFile);
+                        fos.write(fileData);
+                        fos.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                for (int i = Lyear; i <= year; i++) {
+                    try {
+                        String fileName = i + ".zip";
+                        String path_r = general.getDownloadPath(fileName);
+                        File zipFile = new File(path_r);
+
+                        if (!zipFile.exists()) {
+                            System.err.println("Zip file not found, skipping unzip: " + fileName);
+                            continue;
+                        }
+
+                        File destDir = new File(System.getProperty("user.dir") + File.separator + "download");
+                        File extractedJson = new File(destDir, "nvdcve-1.1-" + i + ".json");
+
+                        if (extractedJson.exists()) {
+                            System.err.println("Already extracted: " + extractedJson.getName());
+                            continue;
+                        }
+
+                        System.err.println("Unzipping: " + fileName);
                         byte[] buffer = new byte[1024];
-                        ZipInputStream zis = new ZipInputStream(new FileInputStream(path_r));
+                        ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
                         ZipEntry zipEntry = zis.getNextEntry();
                         while (zipEntry != null) {
                             File newFile = newFile(destDir, zipEntry);
@@ -1059,44 +1070,34 @@ public class Fedora extends Thread {
                                     throw new IOException("Failed to create directory " + newFile);
                                 }
                             } else {
-                                // fix for Windows-created archives
                                 File parent = newFile.getParentFile();
                                 if (!parent.isDirectory() && !parent.mkdirs()) {
                                     throw new IOException("Failed to create directory " + parent);
                                 }
 
-                                // write file content
-                                fos = new FileOutputStream(newFile);
+                                FileOutputStream fout = new FileOutputStream(newFile);
                                 int len;
                                 while ((len = zis.read(buffer)) > 0) {
-                                    fos.write(buffer, 0, len);
+                                    fout.write(buffer, 0, len);
                                 }
-                                fos.close();
+                                fout.close();
                             }
                             zipEntry = zis.getNextEntry();
                         }
                         zis.closeEntry();
                         zis.close();
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    System.out.println("++++++++++++++++++");
                 }
-                  /*
+
                 for (int i = year; i >= Lyear; i--) {
                     try {
-                    //    allyears_tenable(i);
-
+                        allyears(i);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }*/
-
-
+                }
             }
             if (rref.contains(("recent"))) {
                 try {
@@ -1186,7 +1187,6 @@ public class Fedora extends Thread {
 
         general.c1 = general.c1 + 1;
 
-        System.out.println("--------------   getEveryThing" + CVEObject.CVEName + "       " + general.c1);
         EachSummaryLink = CVEObject.CVEName;
         Document CVENVD = null;
 
@@ -1240,9 +1240,7 @@ public class Fedora extends Thread {
         Bugzilla bugzilla = new Bugzilla(connection);
         try {
             //   CVEObject = GetProduct(CVEObject, null, CVENVD, EachSummaryLink);
-            if (CVEObject.Product_name.size() == 0)
-                System.err.println("----------------------------------------empty product  =>" + CVEObject.CVEName);
-        } catch (Exception e) {
+               } catch (Exception e) {
         }
         CVEObject.Distro = "Fedora";
         try {
@@ -1259,10 +1257,7 @@ public class Fedora extends Thread {
         CVEObject.Name = "";
         CVEObject.Agent = "";
         general.c2 = general.c2 + 1;
-        System.err.println("+++++++++++++++++++++++  EndofgetEveryThing" + CVEObject.CVEName + "      " + general.c2);
-        general.Print(CVEObject, numberofcveinjson, ref);
-
-
+        CveQueueManager.cveQueue.add(CVEObject);
     }
 
     public void GetEveryThingOfCVE(CVE CVEObject, String EachSummaryLink, Element CVEElement, Document EachSummaryDoc, Document BugzillaFirstPageDoc, CVE cve, String ref, int numberofcveinjson) throws Exception {

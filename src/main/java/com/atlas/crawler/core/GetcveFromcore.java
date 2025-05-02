@@ -3,6 +3,7 @@ package com.atlas.crawler.core;
 import com.atlas.crawler.controller.ReportController;
 import com.atlas.crawler.model.CVE;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.DataFormatException;
+@Component
 
 public class GetcveFromcore  implements  Runnable  {
     private  volatile boolean finish;

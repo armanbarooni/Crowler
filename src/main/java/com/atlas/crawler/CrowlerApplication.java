@@ -10,6 +10,7 @@ public class CrowlerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CrowlerApplication.class, args);
+
 	}
 
 }

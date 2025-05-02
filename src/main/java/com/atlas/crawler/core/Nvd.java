@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -18,6 +19,7 @@ import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 
 import static java.time.LocalDate.now;
+@Component
 
 public class Nvd  {
     private General general;

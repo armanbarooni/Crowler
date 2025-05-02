@@ -6,6 +6,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.zip.DataFormatException;
 
 import static java.time.LocalDate.now;
+@Component
 
 public class CveDetails    {
     private General general;
