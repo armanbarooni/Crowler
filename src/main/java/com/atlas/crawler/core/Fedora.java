@@ -698,7 +698,7 @@ public class Fedora extends Thread {
                     count = count + 1;
                     testarman++;
                     if (count > -1) {
-                        System.out.println(count);
+                        //System.out.println(count);
                         //       System.err.println(" ttttttttttt -> add ->" + count + " TO database " + Thread.currentThread().getId());
                         org.json.simple.JSONObject CVE = (org.json.simple.JSONObject) Cve;
                         String Reported = null;
@@ -837,12 +837,9 @@ public class Fedora extends Thread {
     public void recenet() throws SQLException {
 
 
-        String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
-        Path Path = FileSystems.getDefault().getPath("./download/download.zip");
-
 
         try {
-            String path_r = System.getProperty("user.dir") + "\\download\\recent.zip";
+            String path_r = general.getDownloadPath("recent.zip");
             URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-modified.json.zip");
             URLConnection con;
             DataInputStream dis;
@@ -858,7 +855,7 @@ public class Fedora extends Thread {
             fos = new FileOutputStream(new File(path_r)); //FILE Save Location goes here
             fos.write(fileData);  // write out the file we want to save.
             fos.close(); // close the output stream writer
-            File destDir = new File(System.getProperty("user.dir") + "\\download\\");
+            File destDir = new File(System.getProperty("user.dir") + File.separator + "download");
             byte[] buffer = new byte[1024];
             ZipInputStream zis = new ZipInputStream(new FileInputStream(path_r));
             ZipEntry zipEntry = zis.getNextEntry();
@@ -945,9 +942,8 @@ public class Fedora extends Thread {
             rref = general.reference;
             general.rref = general.reference;
             if (rref.contains("nvd")) {
-                String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
-                Path Path = FileSystems.getDefault().getPath("./download/download.zip");
-                Date d = new Date();
+
+
                 Calendar instance = Calendar.getInstance();
                 int year = instance.get(Calendar.YEAR);
                 int Lyear = -1;
@@ -958,8 +954,9 @@ public class Fedora extends Thread {
 
                 for (int i = Lyear; i <= year; i++) {
                     try {
-                        String path_r = System.getProperty("user.dir") + "\\download\\" + Integer.valueOf(i) + ".zip";
+                        String path_r =  general.getDownloadPath("" + i + ".zip");;;
                         URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-" + i + ".json.zip");
+                        System.err.println("Download data feeds from "+i);
                         URLConnection con;
                         DataInputStream dis;
                         FileOutputStream fos;
@@ -974,7 +971,7 @@ public class Fedora extends Thread {
                         fos = new FileOutputStream(new File(path_r)); //FILE Save Location goes here
                         fos.write(fileData);  // write out the file we want to save.
                         fos.close(); // close the output stream writer
-                        File destDir = new File(System.getProperty("user.dir") + "\\download\\");
+                        File destDir = new File(System.getProperty("user.dir") + File.separator + "download");
                         byte[] buffer = new byte[1024];
                         ZipInputStream zis = new ZipInputStream(new FileInputStream(path_r));
                         ZipEntry zipEntry = zis.getNextEntry();
@@ -1020,7 +1017,7 @@ public class Fedora extends Thread {
                 }
             }
             String Tedad = "";
-            if (rref.contains("tenable")) {
+            if (rref.contains("tenablegdfg")) {
                 String path = FileSystems.getDefault().getPath("./download/download.zip").toString();
                 Path Path = FileSystems.getDefault().getPath("./download/download.zip");
                 Date d = new Date();
@@ -1035,7 +1032,7 @@ public class Fedora extends Thread {
 
                 for (int i = Lyear; i <= year; i++) {
                     try {
-                        String path_r = System.getProperty("user.dir") + "\\download\\" + Integer.valueOf(i) + ".zip";
+                        String path_r = general.getDownloadPath("" + i + ".zip");
                         URL url = new URL("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-" + i + ".json.zip");
                         URLConnection con;
                         DataInputStream dis;
