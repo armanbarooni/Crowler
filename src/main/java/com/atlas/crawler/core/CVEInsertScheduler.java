@@ -6,50 +6,50 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-@Component
 
-public class CVEInsertScheduler extends  Thread implements Runnable {
+@Component
+public class CVEInsertScheduler {
     private final Connection connection;
-    private General general;
 
     public CVEInsertScheduler(Connection connection) {
         this.connection = connection;
-        general = new General(connection);
-
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                List<CVE> toInsert = new ArrayList<>();
+    public void bulkInsertCVEs() {
+        try {
+            List<CVE> toInsert = new ArrayList<>();
+            CveQueueManager.cveQueue.drainTo(toInsert);
 
-                // بیرون کشیدن همه آیتم‌ها از صف
-                CveQueueManager.cveQueue.drainTo(toInsert);
+            if (!toInsert.isEmpty()) {
+                System.out.println("⏳ Inserting " + toInsert.size() + " CVEs to DB...");
 
-                if (!toInsert.isEmpty()) {
-                    System.out.println("⏳ Inserting " + toInsert.size() + " CVEs to DB...");
+                int batchSize = 1000;
+                for (int i = 0; i < toInsert.size(); i += batchSize) {
+                    int end = Math.min(i + batchSize, toInsert.size());
+                    List<CVE> batch = toInsert.subList(i, end);
 
-                    // شروع تراکنش
                     connection.setAutoCommit(false);
-                    for (CVE cve : toInsert) {
+                    for (CVE cve : batch) {
                         CVEBulkInserter.insert(connection, cve);
                     }
                     connection.commit();
-                    System.out.println("✅ Inserted " + toInsert.size() + " CVEs.");
+                    System.out.println("✅ Batch committed: " + batch.size());
                 }
 
-                // هر ۵ ثانیه چک می‌کنه
-                Thread.sleep(5000);
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
+                System.out.println("✅ All " + toInsert.size() + " CVEs inserted.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("⚠️ Failed to reset autoCommit: " + e.getMessage());
             }
         }
     }

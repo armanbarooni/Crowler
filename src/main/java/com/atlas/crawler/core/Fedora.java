@@ -3,6 +3,8 @@ package com.atlas.crawler.core;
 
 import com.atlas.crawler.controller.ReportController;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -1133,55 +1135,6 @@ public class Fedora extends Thread {
         }
     }
 
-    public void extractData(Document doc, CVE cveObject) {
-
-        Element test2 = doc.getElementById("vulnCpeTree");
-        Element config = doc.getElementById("config-div-1");
-
-        while (true) {
-            Elements vulnerableRows = config.select("tr.vulnerable");
-
-            ArrayList<String> products = new ArrayList<>();
-            ArrayList<String> versions = new ArrayList<>();
-
-            for (Element row : vulnerableRows) {
-                Element cpeElement = row.selectFirst("b[data-testid^=vuln-software-cpe]");
-                if (cpeElement != null) {
-                    String cpe = cpeElement.text();
-                    String[] cpeParts = cpe.split(":");
-                    if (cpeParts.length >= 5) {
-                        String vendor = cpeParts[3];
-                        String product = cpeParts[4];
-
-                        if (!cveObject.PackageName.contains(vendor)) {
-                            cveObject.PackageName.add(vendor);
-                        }
-
-                        Elements cpeList = row.select("ul[id^=cpeNamesList] li a i");
-
-                        if (cpeList.isEmpty()) {
-                            products.add(product);
-                            versions.add("*");
-                        } else {
-                            for (Element cpeItem : cpeList) {
-                                String[] cpeItemParts = cpeItem.text().split(":");
-                                if (cpeItemParts.length >= 5) {
-                                    products.add(cpeItemParts[4]);
-                                    versions.add(cpeItemParts[5]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!products.isEmpty()) {
-                cveObject.Product_name.add(products);
-                cveObject.Product_version.add(versions);
-            }
-        }
-        //  return cveObject;
-    }
 
     public void     GetEveryThingOfCVE2(CVE CVEObject, String EachSummaryLink, String ref, int numberofcveinjson, Object cveItem) throws Exception {
 
@@ -1189,6 +1142,8 @@ public class Fedora extends Thread {
 
         EachSummaryLink = CVEObject.CVEName;
         Document CVENVD = null;
+
+
 
         org.json.simple.JSONObject item = (org.json.simple.JSONObject) cveItem;
         org.json.simple.JSONObject configurations = (org.json.simple.JSONObject) item.get("configurations");
@@ -1208,20 +1163,35 @@ public class Fedora extends Thread {
 
                     if (cpe23Uri != null) {
                         String[] parts = cpe23Uri.split(":");
-                        if (parts.length >= 5) {
+                        if (parts.length >= 6) {
                             String vendor = parts[3];
                             String product = parts[4];
-                            String version = parts.length > 5 ? parts[5] : "*";
+                            String versionFromUri = parts[5];
 
                             if (!CVEObject.PackageName.contains(vendor)) {
                                 CVEObject.PackageName.add(vendor);
                             }
                             productNames.add(product);
-                            productVersions.add(version);
+
+                            // جمع‌آوری تمام ورژن‌ها: نسخه صریح + بازه‌ها
+                            List<String> versions = new ArrayList<>();
+                            versions.add(versionFromUri);
+
+                            String vStartIncl = (String) cpeObj.get("versionStartIncluding");
+                            String vStartExcl = (String) cpeObj.get("versionStartExcluding");
+                            String vEndIncl = (String) cpeObj.get("versionEndIncluding");
+                            String vEndExcl = (String) cpeObj.get("versionEndExcluding");
+
+                            if (vStartIncl != null) versions.add(">= " + vStartIncl);
+                            if (vStartExcl != null) versions.add("> " + vStartExcl);
+                            if (vEndIncl != null) versions.add("<= " + vEndIncl);
+                            if (vEndExcl != null) versions.add("< " + vEndExcl);
+
+                            for(String version : versions)
+                                     productVersions.add(version);
                         }
                     }
                 }
-
             } else {
                 productNames.add("unknown_product");
                 productVersions.add("*");
@@ -1232,6 +1202,8 @@ public class Fedora extends Thread {
                 CVEObject.Product_version.add(productVersions);
             }
         }
+
+
         try {
             // CVENVD = general.getDocument3("https://nvd.nist.gov/vuln/detail/" + EachSummaryLink);
         } catch (Exception e) {

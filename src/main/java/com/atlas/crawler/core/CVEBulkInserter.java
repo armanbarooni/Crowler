@@ -74,20 +74,32 @@ public class CVEBulkInserter extends  Thread{
         return -1;
     }
 
+    private static final int BATCH_SIZE = 1000;
+
     private static void insertProducts(Connection connection, List<String> names, List<String> versions, int vulnId) throws SQLException {
-        if (vulnId == -1) return;
+        if (vulnId == -1 || names.isEmpty() || versions.isEmpty()) return;
 
-        StringBuilder sb = new StringBuilder("INSERT INTO product (product_name, version, vulns_id) VALUES ");
-        for (int i = 0; i < names.size(); i++) {
-            sb.append("('").append(names.get(i).replace("'", "''")).append("', '")
-                    .append(versions.get(i).replace("'", "''")).append("', ")
-                    .append(vulnId).append("),");
-        }
-        sb.setLength(sb.length() - 1); // remove last comma
-        sb.append(" ON CONFLICT (product_name,version,vulns_id) DO NOTHING");
+        int total = names.size();
+        int batchCount = (int) Math.ceil((double) total / BATCH_SIZE);
 
-        try (PreparedStatement stmt = connection.prepareStatement(sb.toString())) {
-            stmt.executeUpdate();
+        for (int i = 0; i < batchCount; i++) {
+            int start = i * BATCH_SIZE;
+            int end = Math.min(start + BATCH_SIZE, total);
+
+            StringBuilder sb = new StringBuilder("INSERT INTO product (product_name, version, vulns_id) VALUES ");
+
+            for (int j = start; j < end; j++) {
+                sb.append("('").append(names.get(j).replace("'", "''")).append("', '")
+                        .append(versions.get(j).replace("'", "''")).append("', ")
+                        .append(vulnId).append("),");
+            }
+
+            sb.setLength(sb.length() - 1); // remove last comma
+            sb.append(" ON CONFLICT (product_name,version,vulns_id) DO NOTHING");
+
+            try (PreparedStatement stmt = connection.prepareStatement(sb.toString())) {
+                stmt.executeUpdate();
+            }
         }
     }
 
