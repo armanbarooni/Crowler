@@ -292,6 +292,9 @@ CREATE TABLE public.product (
     id integer DEFAULT nextval('public.product_seq'::regclass) NOT NULL,
     product_name character varying(128) NOT NULL,
     version character varying(64) NOT NULL,
+	    MinVersion character varying(64) NOT NULL,
+    MaxVersion character varying(64) NOT NULL,
+
     vulns_id integer NOT NULL
 );
 

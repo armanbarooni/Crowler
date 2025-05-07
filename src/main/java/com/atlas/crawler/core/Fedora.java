@@ -423,6 +423,8 @@ public class Fedora extends Thread {
         CVE CVEObject = new CVE();
         CVEObject.Product_name = new ArrayList<>();
         CVEObject.Product_version = new ArrayList<>();
+        CVEObject.Product_MinVersion = new ArrayList<>();
+        CVEObject.Product_MaxVersion = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
         int numberofcveinjson = 0;
         try (FileReader reader = new FileReader("./download/nvdcve-1.1-" + String.valueOf(path) + ".json")) {
@@ -436,6 +438,8 @@ public class Fedora extends Thread {
                 CVEObject = new CVE();
                 CVEObject.Product_name = new ArrayList<>();
                 CVEObject.Product_version = new ArrayList<>();
+                CVEObject.Product_MinVersion = new ArrayList<>();
+                CVEObject.Product_MaxVersion = new ArrayList<>();
                 try {
                     count = count + 1;
                     if (count > -1) {
@@ -685,6 +689,8 @@ public class Fedora extends Thread {
         CVE CVEObject = new CVE();
         CVEObject.Product_name = new ArrayList<>();
         CVEObject.Product_version = new ArrayList<>();
+        CVEObject.Product_MinVersion = new ArrayList<>();
+        CVEObject.Product_MaxVersion = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
         int numberofcveinjson = 0;
         try (FileReader reader = new FileReader("./download/nvdcve-1.1-modified.json")) {
@@ -699,6 +705,8 @@ public class Fedora extends Thread {
                 CVEObject = new CVE();
                 CVEObject.Product_name = new ArrayList<>();
                 CVEObject.Product_version = new ArrayList<>();
+                CVEObject.Product_MinVersion = new ArrayList<>();
+                CVEObject.Product_MaxVersion = new ArrayList<>();
                 try {
                     count = count + 1;
                     testarman++;
@@ -1289,6 +1297,8 @@ public class Fedora extends Thread {
                 ArrayList<String> productversion = new ArrayList<>();
                 CVEObject.PackageName.add(prev_ven);
                 CVEObject.Product_version = new ArrayList<>();
+                CVEObject.Product_MinVersion = new ArrayList<>();
+                CVEObject.Product_MaxVersion = new ArrayList<>();
                 CVEObject.Product_name = new ArrayList<>();
                 while (true) {
                     try {

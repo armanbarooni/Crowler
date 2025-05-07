@@ -41,12 +41,16 @@ public class CVE {
     public String Family;//27
     public  ArrayList<ArrayList<String>> Product_name ;
     public  ArrayList<ArrayList<String>> Product_version ;
+    public  ArrayList<ArrayList<String>> Product_MinVersion ;
+    public  ArrayList<ArrayList<String>> Product_MaxVersion ;
 
 
     public CVE()
     {
         ArrayList<ArrayList<String>> Product_name = new ArrayList<ArrayList<String>>();
         ArrayList<ArrayList<String>> Product_version = new ArrayList<ArrayList<String>>();
+        ArrayList<ArrayList<String>> Product_MinVersion = new ArrayList<ArrayList<String>>();
+        ArrayList<ArrayList<String>> Product_MaxVersion = new ArrayList<ArrayList<String>>();
 
     }
     public CVE(List<String> packageName, List<String> platforms, List<String> patchLink,
@@ -57,7 +61,7 @@ public class CVE {
                String availibilityImpact, String previlagesRequired, String gainedAccess,
                Date date_Changed ,String comments,String cwe,String products_Affected,String name,String synopsis,
                String agent,String family,ArrayList<ArrayList<String>> product_name ,
-               ArrayList<ArrayList<String>> product_version ) {
+               ArrayList<ArrayList<String>> product_version ,ArrayList<ArrayList<String>> product_Minversion,ArrayList<ArrayList<String>> product_Maxversion ) {
         Products_Affected=products_Affected;
         Name=name;
         Synopsis=synopsis;
@@ -89,6 +93,8 @@ public class CVE {
         Comments=comments;
         Product_name=product_name;
         Product_version=product_version;
+        Product_MinVersion=product_Minversion;
+        Product_MaxVersion=product_Maxversion;
     }
     @Override
     public boolean equals(Object o) {
