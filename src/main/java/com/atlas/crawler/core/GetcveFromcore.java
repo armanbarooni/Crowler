@@ -144,11 +144,11 @@ public class GetcveFromcore  implements  Runnable  {
                     if(Use_version==2)
                     {
 
-                        subQuery +=     "select vulns_id ,product_name ,version from product  where product_name like '"+split_package[i]+"%' and version  like '"+vv+"'   union ";  //merge all queries in  one query   created by REza deHghani
+                        subQuery +=     "select vulns_id ,product_name ,version from product  where product_name like '"+split_package[i]+"%' and version  like '"+vv+"' and version !='*'  union ";  //merge all queries in  one query   created by REza deHghani
 
                     }
                     else
-                        subQuery +=     "select vulns_id ,product_name ,version from product  where product_name like '"+split_package[i]+"%' and version  like '"+vv+"%'   union ";  //merge all queries in  one query   created by REza deHghani
+                        subQuery +=     "select vulns_id ,product_name ,version from product  where product_name like '"+split_package[i]+"%' and version  like '"+vv+"%' and  version !='*' union ";  //merge all queries in  one query   created by REza deHghani
                 }
                 subQuery = subQuery.substring(0, subQuery.length() - 6);   //this code remove last  union of  subquery
                 MyConnection = connection;
@@ -311,6 +311,8 @@ public class GetcveFromcore  implements  Runnable  {
             cve.setTitle(myList.get(22));
             cve.setProduct(myList.get(23));
             cve.setVersion(myList.get(24));
+            cve.setMinVersion(myList.get(25));
+            cve.setMaxVersion(myList.get(26));
             cves.add(cve);
         }
 

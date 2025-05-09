@@ -108,7 +108,8 @@ public class Adapter extends Thread{
             cve.setPatch(myList.get(22));
             cve.setProduct(myList.get(23));
             cve.setVersion(myList.get(24));
-
+            cve.setMinVersion(myList.get(25));
+            cve.setMaxVersion(myList.get(26));
             cves.add(cve);
         }
 
@@ -366,7 +367,7 @@ public class Adapter extends Thread{
                 cve.getAttackComplexity(),cve.getCvss(),cve.getCvssText(),cve.getAuthentication(),
                 cve.getTypeEffect(),cve.getIntegrityEffect(),cve.getConfidentialityEffect(),
                 cve.getAvailabilityEffect(), cve.getPrivilegesRequires(),cve.getGainedAccess(),
-                new Date(),cve.getComments(),cve.getCWE(),cve.getProducts_Affected(),cve.getCveName(),cve.getSynopsis(),cve.getAgent(),cve.getFamily(),product,version
+                new Date(),cve.getComments(),cve.getCWE(),cve.getProducts_Affected(),cve.getCveName(),cve.getSynopsis(),cve.getAgent(),cve.getFamily(),product,version,new ArrayList<>(),new ArrayList<>()
         );
 
 

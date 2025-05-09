@@ -971,15 +971,6 @@ public class General extends Thread {
 
     }
 
-    public String CreateName(String s, Date start, Date finish) {
-        String Name = "";
-        Name = Name + s.toUpperCase() + "-" + "CVE";
-        SimpleDateFormat formatter1 = new SimpleDateFormat("ddMMM");
-        SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy");
-        Name = Name + "List-" + formatter1.format(start) + "-to-" + formatter1.format(finish) + "-" + formatter2.format(start);
-        Name = Name.toUpperCase();
-        return Name;
-    }
 
     public String CreateName2(String s, String distro) {
         String Name = "";
@@ -996,110 +987,103 @@ public class General extends Thread {
     }
 
 
-    public void searchByPackage(String packageNames, String Versions, String distro) throws SQLException, DataFormatException, IOException, InvalidFormatException {
-
+    public void searchByPackage(String packageNames, String versions, String distro) {
+        System.err.println("❌ Error in searchByPackage: " );
 
         ReportController.resultrecods = new ArrayList<>();
 
-        Connection MyConnection = null;
-        int flag = 0;
-        PreparedStatement MyStatement1 = null;
-        String[] split_package = packageNames.split(",");
-        String[] split_version = Versions.split(",");
-        String vv = null;
-        try {
-            int it = 0;
-            int itt = 0;
-            String subQuery = "";
+        String[] splitPackage = packageNames.split(",");
+        String[] splitVersion = versions.split(",");
 
-            /////////////////////// B: this section is add in version 4.4
-            for (int i = 0; i < split_package.length; i++) {
-                vv = "";
-                split_package[i] = split_package[i].replace("=", "");//B :this code was added to prevent sali
-                split_package[i] = split_package[i].replace(" and ", "");//B :this code was added to prevent sali
+        if (splitPackage.length == 0) return;
 
-                split_package[i] = split_package[i].replace(" or ", "");//B :this code was added to prevent sali
-                split_package[i] = split_package[i].replace("-", "");//B :this code was added to prevent sali
+        // پاک‌سازی داده‌ها
+        List<String> cleanPackages = new ArrayList<>();
+        List<String> cleanVersions = new ArrayList<>();
+        for (int i = 0; i < splitPackage.length; i++) {
+            String pkg = cleanInput(splitPackage[i]);
+            String ver = (i < splitVersion.length) ? cleanInput(splitVersion[i]) : "";
+            if (pkg.equals("#")) continue;
+            if (pkg.equalsIgnoreCase("kernel")) pkg = "linux_kernel";
+            if (ver.equals("*") || Use_version == 0) ver = "";
+            cleanPackages.add(pkg);
+            cleanVersions.add(ver);
+        }
 
-                split_package[i] = split_package[i].replace("'", "");//B :this code was added to prevent sali
-                if (split_version.length > i) {
-                    split_version[i] = split_version[i].replace("'", "");
-                    split_version[i] = split_version[i].replace("-", "");
-                    split_version[i] = split_version[i].replace("=", "");
-                    split_version[i] = split_version[i].replace(" or ", "");
-                    split_version[i] = split_version[i].replace(" and ", "");
+        if (cleanPackages.isEmpty()) return;
 
-                    split_version[i] = split_version[i].replace(" ", "");
-                    vv = split_version[i];
-                    if ((Use_version == 0)) {
-                        vv = "";
-                    }
-                }
-                it = it + 1;
-                flag = 0;
-                if (split_package[i].equals("#")) {
-                    split_package[i] = "";
+        StringBuilder subQueryBuilder = new StringBuilder();
+        for (int i = 0; i < cleanPackages.size(); i++) {
+            subQueryBuilder.append("SELECT id FROM product WHERE LOWER(package_name) LIKE LOWER(?) ");
+            if (Use_version == 2)
+                subQueryBuilder.append("AND version = ? ");
+            else
+                subQueryBuilder.append("AND version LIKE ? ");
+            subQueryBuilder.append("AND distribution LIKE ? UNION ");
+        }
+        String subQuery = subQueryBuilder.substring(0, subQueryBuilder.length() - 7); // حذف UNION آخر
 
-                }
-                if (split_package[i].equals("kernel")) {
-                    split_package[i] = "linux_kernel";
+        String finalQuery =
+                "SELECT vulns.id, vulns.package, product.package_name, product.version " +
+                        "FROM vulns " +
+                        "JOIN product_vulns ON product_vulns.vulns_id = vulns.id " +
+                        "JOIN product ON product.id = product_vulns.package_id " +
+                        "WHERE vulns.id IN (" +
+                        "SELECT vulns_id FROM product_vulns WHERE package_id IN (" + subQuery + ")" +
+                        ") AND product.id IN (" +
+                        "SELECT package_id FROM product_vulns WHERE package_id IN (" + subQuery + ")" +
+                        ") AND product.version != '*' " +
+                        "AND cvss_v3 > 7 " +
+                        "ORDER BY package_name " +
+                        "LIMIT 10000";
 
-                }
-                if (!vv.equals("")) {
-                    if (vv.equals("*")) {
-                        vv = "";
-                    }
-                }
-                if (Use_version == 2) {
-                    subQuery += " select id from product where LOWER(package_name) like LOWER('" + split_package[i] + "%')  and version = '" + vv + "' and distribution like '%" + distro + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
+        try (Connection conn = connection;
+             PreparedStatement stmt = conn.prepareStatement(finalQuery)) {
 
-                } else
-                    subQuery += " select id from product where LOWER(package_name) like LOWER('" + split_package[i] + "%')  and version like '" + vv + "%' and distribution like '%" + distro + "%' " + " union";  //merge all queries in  one query   created by REza deHghani
+            int paramIndex = 1;
+            for (int i = 0; i < cleanPackages.size(); i++) {
+                stmt.setString(paramIndex++, cleanPackages.get(i) + "%");
+                stmt.setString(paramIndex++, Use_version == 2 ? cleanVersions.get(i) : cleanVersions.get(i) + "%");
+                stmt.setString(paramIndex++, "%" + distro + "%");
             }
-            subQuery = subQuery.substring(0, subQuery.length() - 5);   //this code remove last  union of  subquery
-            MyConnection = connection;
-            String final_query = "select  vulns.id,vulns.package,product.package_name,product.version from vulns,product,product_vulns where product_vulns.package_id=product.id and product_vulns.vulns_id=vulns.id  and  vulns.id in(select vulns_id from product_vulns where package_id in(" + subQuery + "))   and product.id in (select package_id from product_vulns where package_id in  ( " + subQuery + ")) and cvss_v3 >7 order by package_name limit 10000";
-            MyStatement1 = MyConnection.prepareStatement(final_query);
-            PreparedStatement my = MyConnection.prepareStatement(final_query);
-            ResultSet r = MyStatement1.executeQuery();
+            for (int i = 0; i < cleanPackages.size(); i++) {
+                stmt.setString(paramIndex++, cleanPackages.get(i) + "%");
+                stmt.setString(paramIndex++, Use_version == 2 ? cleanVersions.get(i) : cleanVersions.get(i) + "%");
+                stmt.setString(paramIndex++, "%" + distro + "%");
+            }
+
+            ResultSet rs = stmt.executeQuery();
             String name = CreateName2(distro, distro);
+            int flag = 0;
 
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String pkg = rs.getString("package_name");
+                String ver = rs.getString("version");
 
-            while (r.next()) {
-                int idNumber = r.getInt("id");
-                String packagename = r.getString("package_name");
-                String version = r.getString("version");
-
-                if (ReportController.wholeIds.contains(idNumber)) {
-                    flag = 1;
-
-                    List<String> record = FillExcelRow(Integer.toString(idNumber), distro);
-                    if ((!record.get(0).contains("Not Clear") && (!record.get(0).contains("vulnerability")))) {
-                        record.add(packagename);
-                        record.add(version);
+                if (ReportController.wholeIds.contains(id)) {
+                    List<String> record = FillExcelRow(String.valueOf(id), distro);
+                    if (!record.get(0).contains("Not Clear") && !record.get(0).contains("vulnerability")) {
+                        record.add(pkg);
+                        record.add(ver);
                         ReportController.resultrecods.add(record);
-
+                        flag = 1;
                     }
-
                 }
-
-
-            }
-
-
-            if (flag == 1) {
             }
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-        } finally {
-            try {
-                ;
-                MyStatement1.close();
-            } catch (Exception e) {
-            }
+            System.err.println("❌ Error in searchByPackage: " + e.getMessage());
         }
+
         EC = false;
+    }
+
+    private String cleanInput(String input) {
+        return input.replaceAll("[=\\-']", "")
+                .replace(" and ", "")
+                .replace(" or ", "")
+                .trim();
     }
 
     public boolean isValidFormat(String format, String value, Locale locale) {

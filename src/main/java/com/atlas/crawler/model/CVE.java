@@ -62,17 +62,26 @@ public class CVE {
     private   String Synopsis;//25
     private String Agent;//26
     private String Family;//27
+
     @NotNull(message = "Product Name is Required")
     @Size(min = 4, message = "طول بخش products خیلی کوتاه است")
     private String product;
 
     private String version;
 
+    private String MinVersion;
+
+    private String MaxVersion;
+
     public CVE(){
 
     }
 
-    public CVE(String  name,String Soloution,String synopsisy ,String agent, String family, String packageName, String distribution, String createdDate, String platform, String cveName, String publishDate, String lastModifiedDate, String description, String type, String attackVector, String attackComplexity, String cvss, String cvssText, String authentication, String typeEffect, String integrityEffect, String confidentialityEffect, String availabilityEffect, String privilegesRequires, String gainedAccess, String referenceLink, String comments, String patch , String cwe) {
+    public CVE(String  name,String Soloution,String synopsisy ,String agent, String family, String packageName, String distribution,
+               String createdDate, String platform, String cveName, String publishDate, String lastModifiedDate, String description,
+               String type, String attackVector, String attackComplexity, String cvss, String cvssText, String authentication,
+               String typeEffect, String integrityEffect, String confidentialityEffect, String availabilityEffect, String privilegesRequires,
+               String gainedAccess, String referenceLink, String comments, String patch , String cwe , String minVersion ,String maxVersion) {
         this.CWE=cwe;
         this.Name=name;
         this.Soloution=Soloution;
@@ -102,6 +111,8 @@ public class CVE {
         this.referenceLink = referenceLink;
         this.comments = comments;
         this.patch = patch;
+        this.MaxVersion=minVersion;
+        this.MaxVersion=maxVersion;
     }
 
     public String getPackageName() {
@@ -336,5 +347,17 @@ public class CVE {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+    public void setMinVersion(String minVersion) {
+        this.MinVersion = minVersion;
+    }
+    public String getMinVersion() {
+        return MinVersion;
+    }
+    public void setMaxVersion(String maxVersion) {
+        this.MaxVersion = maxVersion;
+    }
+    public String getMaxVersion() {
+        return MaxVersion;
     }
 }
