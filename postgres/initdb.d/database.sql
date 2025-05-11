@@ -280,24 +280,21 @@ CREATE SEQUENCE public.product_seq
     NO MAXVALUE
     CACHE 1;
 
-
 ALTER TABLE public.product_seq OWNER TO postgres;
-
---
--- TOC entry 222 (class 1259 OID 49659)
--- Name: product; Type: TABLE; Schema: public; Owner: postgres
---
 
 CREATE TABLE public.product (
     id integer DEFAULT nextval('public.product_seq'::regclass) NOT NULL,
     product_name character varying(128) NOT NULL,
     version character varying(64) NOT NULL,
-	    MinVersion character varying(64) NOT NULL,
+    MinVersion character varying(64) NOT NULL,
     MaxVersion character varying(64) NOT NULL,
-
     vulns_id integer NOT NULL
 );
 
+ALTER TABLE public.product ADD CONSTRAINT product_pkey PRIMARY KEY (id);
+
+ALTER TABLE public.product ADD CONSTRAINT unique_product_entry
+    UNIQUE (product_name, version, MinVersion, MaxVersion, vulns_id);
 
 ALTER TABLE public.product OWNER TO postgres;
 
@@ -450,6 +447,9 @@ CREATE VIEW public.vuln_vendor_product AS
 
 
 ALTER TABLE public.vuln_vendor_product OWNER TO postgres;
+
+ALTER TABLE public.vulns
+ADD CONSTRAINT unique_package_cve UNIQUE (package, cve);
 
 --
 -- TOC entry 3421 (class 0 OID 49621)

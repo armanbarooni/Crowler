@@ -25,9 +25,11 @@ public class CVEBulkInserter extends  Thread{
             String p_name = obj.PackageName.get(i);
             List<String> products = obj.Product_name.get(i);
             List<String> versions = obj.Product_version.get(i);
+            List<String> Minversions = obj.Product_MinVersion.get(i);
+            List<String> Maxversions = obj.Product_MaxVersion.get(i);
 
             int vulnId = insertOrUpdateVuln(connection, obj, p_name);
-            insertProducts(connection, products, versions, vulnId);
+            insertProducts(connection, products, versions,Minversions,Maxversions, vulnId);
         }
     }
 
@@ -76,7 +78,16 @@ public class CVEBulkInserter extends  Thread{
 
     private static final int BATCH_SIZE = 1000;
 
-    private static void insertProducts(Connection connection, List<String> names, List<String> versions, int vulnId) throws SQLException {
+
+
+    private static void insertProducts(
+            Connection connection,
+            List<String> names,
+            List<String> versions,
+            List<String> minVersions,
+            List<String> maxVersions,
+            int vulnId
+    ) throws SQLException {
         if (vulnId == -1 || names.isEmpty() || versions.isEmpty()) return;
 
         int total = names.size();
@@ -86,16 +97,21 @@ public class CVEBulkInserter extends  Thread{
             int start = i * BATCH_SIZE;
             int end = Math.min(start + BATCH_SIZE, total);
 
-            StringBuilder sb = new StringBuilder("INSERT INTO product (product_name, version, vulns_id) VALUES ");
+            StringBuilder sb = new StringBuilder(
+                    "INSERT INTO product (product_name, version, MinVersion, MaxVersion, vulns_id) VALUES "
+            );
 
             for (int j = start; j < end; j++) {
-                sb.append("('").append(names.get(j).replace("'", "''")).append("', '")
-                        .append(versions.get(j).replace("'", "''")).append("', ")
+                sb.append("('")
+                        .append(names.get(j).replace("'", "''")).append("', '")
+                        .append(versions.get(j).replace("'", "''")).append("', '")
+                        .append(minVersions.get(j).replace("'", "''")).append("', '")
+                        .append(maxVersions.get(j).replace("'", "''")).append("', ")
                         .append(vulnId).append("),");
             }
 
             sb.setLength(sb.length() - 1); // remove last comma
-            sb.append(" ON CONFLICT (product_name,version,vulns_id) DO NOTHING");
+            sb.append(" ON CONFLICT (product_name, version, MinVersion, MaxVersion, vulns_id) DO NOTHING");
 
             try (PreparedStatement stmt = connection.prepareStatement(sb.toString())) {
                 stmt.executeUpdate();

@@ -17,44 +17,48 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.DataFormatException;
+
 @Component
 
-public class GetcveFromcore  implements  Runnable  {
-    private  volatile boolean finish;
+public class GetcveFromcore implements Runnable {
+    private volatile boolean finish;
     private General general;
-        private Connection connection;
-    public GetcveFromcore(Connection connection){
-            this.connection = connection;
-            general = new General(connection);
-            packageNames =new String();
-            Versions=new String();
-       cves = new ArrayList<>();
+    private Connection connection;
+
+    public GetcveFromcore(Connection connection) {
+        this.connection = connection;
+        general = new General(connection);
+        packageNames = new String();
+        Versions = new String();
+        cves = new ArrayList<>();
 
     }
-    public  String  startDatee, finishDatee , distributionTypee;
-    public   int usevv;
-    public  List<String> packagess;
+
+    public String startDatee, finishDatee, distributionTypee;
+    public int usevv;
+    public List<String> packagess;
 
 
     private List<CVE> cves;
     String packageNames;
     String Versions;
-    public  List<Integer> wholeIds = new ArrayList<Integer>();
+    public List<Integer> wholeIds = new ArrayList<Integer>();
+
     @Override
     public void run() {
 
-          int pack;
-        int Use_version=-1;
+        int pack;
+        int Use_version = -1;
         String distro;
         pack = usevv;
 
-        if(startDatee.equals(""))
-            startDatee="p";
-        if(finishDatee.equals(""))
-            finishDatee="p";
+        if (startDatee.equals(""))
+            startDatee = "p";
+        if (finishDatee.equals(""))
+            finishDatee = "p";
         if (startDatee.equals("p")) {
 
-           startDatee= "2001-01-01";
+            startDatee = "2001-01-01";
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDateTime now = LocalDateTime.now();
         }
@@ -62,33 +66,28 @@ public class GetcveFromcore  implements  Runnable  {
         if (finishDatee.equals("p")) {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDateTime now = LocalDateTime.now();
-          finishDatee = "2010-01-01";
-           finishDatee = dtf.format(now);
+            finishDatee = "2010-01-01";
+            finishDatee = dtf.format(now);
         }
-        if(pack==1)
-        {
-            Use_version=0;
-            usevv=0;
+        if (pack == 1) {
+            Use_version = 0;
+            usevv = 0;
+        } else if (pack == 0) {
+            Use_version = 1;
+            usevv = 1;
+        } else {
+            Use_version = 2;
+            usevv = 2;
         }
-        else  if(pack==0)
-        {
-            Use_version=1;
-            usevv=1;
-        }
-        else
-        {
-            Use_version=2;
-            usevv=2;
-        }
-        int startint=0;
-        int finishint=0;
-        distro=distributionTypee;
+        int startint = 0;
+        int finishint = 0;
+        distro = distributionTypee;
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             Date start = formatter.parse(startDatee);
             Date finish = formatter.parse(finishDatee);
-             startint = (int) (start.getTime() / 1000);
-             finishint = (int) (finish.getTime() / 1000);
+            startint = (int) (start.getTime() / 1000);
+            finishint = (int) (finish.getTime() / 1000);
 
         } catch (ParseException e) {
             e.printStackTrace();
@@ -98,92 +97,69 @@ public class GetcveFromcore  implements  Runnable  {
 
 //////////////////////////////////////////////////////////////
 
-        Collection<List<String>>  resultrecods = new ArrayList<>();
+        Collection<List<String>> resultrecods = new ArrayList<>();
         Connection MyConnection = null;
         int flag = 0;
         PreparedStatement MyStatement1 = null;
         String[] split_package = packageNames.split(",");
         String[] split_version = Versions.split(",");
-        String vv=null;
+
         try {
-            distributionTypee="package";
-            if(distributionTypee.equals("package"))
-            {
-                int it = 0;
-                String subQuery = "";
+            distributionTypee = "package";
+            if (distributionTypee.equals("package")) {
+                StringBuilder subQuery = new StringBuilder();
+                List<String> parameters = new ArrayList<>();
 
-                /////////////////////// B: this section is add in version 4.4
                 for (int i = 0; i < split_package.length; i++) {
-                    vv="";
-                    split_package[i] = split_package[i].replace("'", "");//B :this code was added to prevent sali
+                    String pkg = split_package[i].replace("'", "").trim();
+                   String vv = (split_version.length > i) ? split_version[i].replace("'", "").trim() : "";
 
+                    if (pkg.equals("#")) continue;
+                    if (pkg.equals("kernel")) pkg = "linux_kernel";
 
-                    if(split_version.length>i){
-                        split_version[i] = split_version[i].replace("'", "");
-                        split_version[i] = split_version[i].replace(" ", "");
-                        vv=split_version[i];
-                        if (Use_version==0) {
-                            split_version[i] = "";
-                        }
+                    if (Use_version == 0 || vv.equals("")) {
+                        subQuery.append("SELECT vulns_id, product_name, version FROM product WHERE product_name LIKE ? UNION ");
+                        parameters.add(pkg + "%");
+                    } else if (Use_version == 1) {
+                        subQuery.append("SELECT vulns_id, product_name, version FROM product WHERE product_name LIKE ? AND version = ? UNION ");
+                        parameters.add(pkg + "%");
+                        parameters.add(vv);
+                    } else if (Use_version == 2) {
+                            subQuery.append(
+                                    "SELECT vulns_id, product_name, version, minversion, maxversion FROM product " +
+                                            "WHERE product_name LIKE ? AND (" +
+                                            "version LIKE ? OR " +
+                                            "((minversion IS NOT NULL AND minversion != '' AND ? >= minversion) " +
+                                            "AND (maxversion IS NOT NULL AND maxversion != '' AND ? <= maxversion))" +
+                                            ")" +
+                                            " UNION "
+                            );
+                            parameters.add(pkg + "%");
+                            parameters.add(vv);
+                            parameters.add(vv);
+                            parameters.add(vv);
                     }
-                    it = it + 1;
-                    flag = 0;
-                    if (split_package[i].equals("#")) {
-                        split_package[i] = "";
-
-                    }
-                    if (split_package[i].equals("kernel")) {
-                        split_package[i] = "linux_kernel";
-
-                    }
-                    if(!vv.equals("")){
-                        if (vv.equals("*")) {
-                            vv = "";
-                        }
-                    }
-                    if(Use_version==2)
-                    {
-
-                        subQuery +=     "select vulns_id ,product_name ,version from product  where product_name like '"+split_package[i]+"%' and version  like '"+vv+"' and version !='*'  union ";  //merge all queries in  one query   created by REza deHghani
-
-                    }
-                    else
-                        subQuery +=     "select vulns_id ,product_name ,version from product  where product_name like '"+split_package[i]+"%' and version  like '"+vv+"%' and  version !='*' union ";  //merge all queries in  one query   created by REza deHghani
                 }
-                subQuery = subQuery.substring(0, subQuery.length() - 6);   //this code remove last  union of  subquery
-                MyConnection = connection;
-                String final_query = " select t.* ,  p.product_name , p.version   from cve t " +
-                        "inner join" +
-                        "("+subQuery+") p " +
-                        "on p.vulns_id=t.id   where updated_at>"+String.valueOf(startint) +" and  updated_at<"+String.valueOf(finishint) +" order by cvss desc";
 
+                String sub = subQuery.substring(0, subQuery.length() - 7);
+                String final_query = "SELECT t.*, p.product_name, p.version " +
+                        "FROM cve t " +
+                        "INNER JOIN (" + sub + ") p ON p.vulns_id = t.id " +
+                        "WHERE updated_at > ? AND updated_at < ? " +
+                        "ORDER BY cvss DESC";
+
+                parameters.add(String.valueOf(startint));
+                parameters.add(String.valueOf(finishint));
                 MyStatement1 = MyConnection.prepareStatement(final_query);
-                PreparedStatement my=MyConnection.prepareStatement(final_query);
+
+                for (int i = 0; i < parameters.size(); i++) {
+                    MyStatement1.setString(i + 1, parameters.get(i));
+                }
+
                 ResultSet r = MyStatement1.executeQuery();
-                String name = CreateName2(distro, distro);
-                boolean T=false;
-                System.out.println("getting information please wait....");
-
-                while (r.next()) {
-                    List<String> row = new ArrayList<String>();
-                    for(int coun=1;coun<=25;coun++)
-                    {
-
-                        row.add(r.getString(coun));
-                    }
-                    resultrecods.add(row);
-
-                }
-
-                System.out.println("collecting information  done....");
-
-                if (flag == 1) {
-                }
 
             }
-
-            else
-            {
+            else {
 
 
                 int it = 0;
@@ -191,15 +167,15 @@ public class GetcveFromcore  implements  Runnable  {
 
                 /////////////////////// B: this section is add in version 4.4
                 for (int i = 0; i < split_package.length; i++) {
-                    vv="";
+                    String  vv = "";
                     split_package[i] = split_package[i].replace("'", "");//B :this code was added to prevent sali
 
 
-                    if(split_version.length>i){
+                    if (split_version.length > i) {
                         split_version[i] = split_version[i].replace("'", "");
                         split_version[i] = split_version[i].replace(" ", "");
-                        vv=split_version[i];
-                        if (Use_version==0) {
+                        vv = split_version[i];
+                        if (Use_version == 0) {
                             split_version[i] = "";
                         }
                     }
@@ -212,32 +188,31 @@ public class GetcveFromcore  implements  Runnable  {
                     if (split_package[i].equals("kernel")) {
                         split_package[i] = "linux_kernel";
                     }
-                    if(!vv.equals("")){
+                    if (!vv.equals("")) {
                         if (vv.equals("*")) {
                             vv = "";
                         }
                     }
 
-                        subQuery += "select id from lookups where type ='PCK' and val like '%"+ split_package[i] +"%'" + " union";  //merge all queries in  one query   created by REza deHghani
+                    subQuery += "select id from lookups where type ='PCK' and val like '%" + split_package[i] + "%'" + " union";  //merge all queries in  one query   created by REza deHghani
 
                 }
                 subQuery = subQuery.substring(0, subQuery.length() - 5);   //this code remove last  union of  subquery
                 MyConnection = connection;
-                String final_query = "  select vulns.id,vulns.package,product.package_name,product.version from vulns,product,product_vulns where product_vulns.package_id=product.id and product_vulns.vulns_id=vulns.id    and  vulns.package in ("+subQuery+") " ;
+                String final_query = "  select vulns.id,vulns.package,product.package_name,product.version from vulns,product,product_vulns where product_vulns.package_id=product.id and product_vulns.vulns_id=vulns.id    and  vulns.package in (" + subQuery + ") ";
                 MyStatement1 = MyConnection.prepareStatement(final_query);
-                PreparedStatement my=MyConnection.prepareStatement(final_query);
+                PreparedStatement my = MyConnection.prepareStatement(final_query);
                 ResultSet r = MyStatement1.executeQuery();
                 String name = CreateName2(distro, distro);
-                boolean T=false;
+                boolean T = false;
                 System.out.println("getting information please wait....");
 
                 while (r.next()) {
                     List<String> row = new ArrayList<String>();
-                    for(int i=0;i<=25;i++)
-                    {
+                    for (int i = 0; i <= 25; i++) {
                         row.add(r.getString(i));
                     }
-                    T=true;
+                    T = true;
 /*
                     int idNumber = r.getInt("id");
                     String packagename=r.getString("package_name");
@@ -263,7 +238,6 @@ public class GetcveFromcore  implements  Runnable  {
                 System.out.println("collecting information  done....");
 
 
-
                 if (flag == 1) {
                 }
 
@@ -282,8 +256,8 @@ public class GetcveFromcore  implements  Runnable  {
         ////////////////////////////////////////////////////////////////////////
 
         Iterator<List<String>> iterator = resultrecods.iterator();
-        int p=0;
-        while (iterator.hasNext()){
+        int p = 0;
+        while (iterator.hasNext()) {
 
             List<String> myList = iterator.next();
             CVE cve = new CVE();
@@ -316,12 +290,12 @@ public class GetcveFromcore  implements  Runnable  {
             cves.add(cve);
         }
 
-        finish=true;
-        synchronized (this)
-        {
+        finish = true;
+        synchronized (this) {
             this.notify();
         }
     }
+
     private void getPackageNameFromFile(List<String> pkg) {
 
         try {
@@ -330,27 +304,25 @@ public class GetcveFromcore  implements  Runnable  {
                 counter = counter + 1;
                 int index = st.indexOf(" ");  //  B: we change - to "  "   to seprate package from version
                 int index2 = st.indexOf("*");  //B : if we dont have version
-                String v ="";
+                String v = "";
 
-                if(usevv==0){
-                    index=st.length();
+                if (usevv == 0) {
+                    index = st.length();
                     st = st.substring(0, index);
 
-                }
-                else{
+                } else {
                     if (index != -1)  // B: if package has version
                     {
 
                         v = st.substring(index + 1, st.length()); // B:  we change st.length-1 to st.length becuse it didnt work correct
                         st = st.substring(0, index);
-                    } else if(index2!=-1 )  // B : if package has no version
+                    } else if (index2 != -1)  // B : if package has no version
                     {
 
                         v = st.substring(index2, st.length()); // B:  we change st.length-1 to st.length becuse it didnt work correct
                         st = st.substring(0, index2);
-                    }
-                    else {
-                        v="";
+                    } else {
+                        v = "";
 
                     }
 
@@ -371,7 +343,7 @@ public class GetcveFromcore  implements  Runnable  {
     }
 
 
-    public  List<String> devideToWeeks(String StartDate, String FinishDate) throws ParseException {
+    public List<String> devideToWeeks(String StartDate, String FinishDate) throws ParseException {
         Date sdate = new SimpleDateFormat("yyyy-MM-dd").parse(StartDate);
         Date fdate = new SimpleDateFormat("yyyy-MM-dd").parse(FinishDate);
         List<String> collection = new ArrayList<String>();
@@ -398,6 +370,7 @@ public class GetcveFromcore  implements  Runnable  {
         }
         return collection;
     }
+
     /*
     public  void GetFromDB(String iStart, String iFinish, String distro) throws ParseException, SQLException, DataFormatException, IOException, InvalidFormatException {
 
@@ -441,20 +414,21 @@ public class GetcveFromcore  implements  Runnable  {
 
     }
   */
-    public  String CreateName2(String s, String distro) {
+    public String CreateName2(String s, String distro) {
         String Name = "";
         Name = Name + s.toUpperCase() + "-" + "CVE";
 
         Name = Name + "List";
         Name = Name + "-" + distro;
         Name = Name.toUpperCase();
-        Date date  =new java.util.Date();
-        Name=Name+date.toString();
-        Name=Name.replace(" ","-");
-        Name= Name.replace(":","");
+        Date date = new java.util.Date();
+        Name = Name + date.toString();
+        Name = Name.replace(" ", "-");
+        Name = Name.replace(":", "");
         return Name;
     }
-    public  List<String> FillExcelRow(String ID,String distro) throws SQLException, DataFormatException, UnsupportedEncodingException {
+
+    public List<String> FillExcelRow(String ID, String distro) throws SQLException, DataFormatException, UnsupportedEncodingException {
         List<String> row = new ArrayList<String>();
         Connection MyConnection = null;
         PreparedStatement MyStatement1 = null;
@@ -551,7 +525,7 @@ public class GetcveFromcore  implements  Runnable  {
                 row.add(cve_row6.getString("val"));//atv
                 row.add(cve_row7.getString("val"));//acc
                 row.add(cve_row.getString("cvss_v3"));
-                row.add(cve_row.getString("cvss").replace("\n"," __ "));
+                row.add(cve_row.getString("cvss").replace("\n", " __ "));
                 row.add(cve_row8.getString("val"));//aut
                 row.add(cve_row9.getString("val"));//imt
                 row.add(cve_row10.getString("val"));//int
@@ -559,9 +533,9 @@ public class GetcveFromcore  implements  Runnable  {
                 row.add(cve_row12.getString("val"));//ava
                 row.add(cve_row13.getString("val"));//pri
                 row.add(cve_row14.getString("val"));//gaa
-                row.add(cve_row.getString("reference").replace("\n"," __ "));
-                row.add(cve_row.getString("comments").replace("\n"," __ "));
-                row.add(cve_row.getString("patch").replace("\n"," __ "));
+                row.add(cve_row.getString("reference").replace("\n", " __ "));
+                row.add(cve_row.getString("comments").replace("\n", " __ "));
+                row.add(cve_row.getString("patch").replace("\n", " __ "));
 
                 MyStatement1.close();
                 ;
@@ -575,12 +549,11 @@ public class GetcveFromcore  implements  Runnable  {
     }
 
 
-    public  List<CVE> return_result() throws InterruptedException {
-        synchronized (this)
-        {
-            if(!finish)
-            this.wait();
+    public List<CVE> return_result() throws InterruptedException {
+        synchronized (this) {
+            if (!finish)
+                this.wait();
         }
-        return  cves;
+        return cves;
     }
 }

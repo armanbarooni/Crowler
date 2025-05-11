@@ -1151,8 +1151,6 @@ public class Fedora extends Thread {
         EachSummaryLink = CVEObject.CVEName;
         Document CVENVD = null;
 
-
-
         org.json.simple.JSONObject item = (org.json.simple.JSONObject) cveItem;
         org.json.simple.JSONObject configurations = (org.json.simple.JSONObject) item.get("configurations");
         org.json.simple.JSONArray nodes = (org.json.simple.JSONArray) configurations.get("nodes");
@@ -1163,6 +1161,8 @@ public class Fedora extends Thread {
 
             ArrayList<String> productNames = new ArrayList<>();
             ArrayList<String> productVersions = new ArrayList<>();
+            ArrayList<String> productMinVersions = new ArrayList<>();
+            ArrayList<String> productMaxVersions = new ArrayList<>();
 
             if (cpes != null && !cpes.isEmpty()) {
                 for (Object cpe : cpes) {
@@ -1181,35 +1181,49 @@ public class Fedora extends Thread {
                             }
                             productNames.add(product);
 
-                            // جمع‌آوری تمام ورژن‌ها: نسخه صریح + بازه‌ها
-                            List<String> versions = new ArrayList<>();
-                            versions.add(versionFromUri);
+                            // --- exact version
+                            productVersions.add(versionFromUri.equals("*") ? "" : versionFromUri);
 
+                            // --- min version
+                            String minVersion = "";
                             String vStartIncl = (String) cpeObj.get("versionStartIncluding");
                             String vStartExcl = (String) cpeObj.get("versionStartExcluding");
+                            if (vStartIncl != null && !vStartIncl.equals("*")) {
+                                minVersion =  vStartIncl;
+                            } else if (vStartExcl != null && !vStartExcl.equals("*")) {
+                                minVersion =  vStartExcl;
+                            }
+                            productMinVersions.add(minVersion);
+
+                            // --- max version
+                            String maxVersion = "";
                             String vEndIncl = (String) cpeObj.get("versionEndIncluding");
                             String vEndExcl = (String) cpeObj.get("versionEndExcluding");
-
-                            if (vStartIncl != null) versions.add(">= " + vStartIncl);
-                            if (vStartExcl != null) versions.add("> " + vStartExcl);
-                            if (vEndIncl != null) versions.add("<= " + vEndIncl);
-                            if (vEndExcl != null) versions.add("< " + vEndExcl);
-
-                            for(String version : versions)
-                                     productVersions.add(version);
+                            if (vEndIncl != null && !vEndIncl.equals("*")) {
+                                maxVersion =  vEndIncl;
+                            } else if (vEndExcl != null && !vEndExcl.equals("*")) {
+                                maxVersion = vEndExcl;
+                            }
+                            productMaxVersions.add(maxVersion);
                         }
                     }
                 }
             } else {
                 productNames.add("unknown_product");
                 productVersions.add("*");
+                productMinVersions.add("");
+                productMaxVersions.add("");
             }
 
             if (!productNames.isEmpty()) {
                 CVEObject.Product_name.add(productNames);
                 CVEObject.Product_version.add(productVersions);
+                CVEObject.Product_MinVersion.add(productMinVersions);
+                CVEObject.Product_MaxVersion.add(productMaxVersions);
             }
         }
+
+
 
 
         try {
