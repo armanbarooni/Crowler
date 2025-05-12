@@ -148,8 +148,8 @@
                         <div class="form-group col-md-4 col-sm-4 col-12">
                             <label for="input-search-usev" class="add-font">استفاده از نسخه :</label>
                             <select class="form-control add-font" name="usev" required id="input-search-usev">
-                                <option value="0">بله-ورژن باید حتما وارد شود </option>
-                                <option value="2"> بله فیکس-ورژن باید حتما وارد شود  </option>
+                                <option value="0">بازه -ورژن باید حتما وارد شود </option>
+                                <option value="2">  فیکس -ورژن باید حتما وارد شود  </option>
                                 <option value="1">خیر-ورژن در نظر گرفته نمیشود</option>
                             </select>
                         </div>
@@ -202,6 +202,8 @@
                             <th scope="col">نام پکیج</th>
                             <th scope="col">نام بسته</th>
                             <th scope="col">ورژن</th>
+                            <th scope="col">بازه پایین</th>
+                            <th scope="col">بازه بالا</th>
                             <th scope="col">رتبه</th>
                             <th scope="col"> تاریخ انتشار </th>
                             <th scope="col"> تاریخ به روز رسانی</th>
@@ -317,6 +319,8 @@
                         output += "<td dir='ltr'>" + respone[i]["packageName"] + "</td>";
                         output += "<td dir='ltr'>" + respone[i]["product"] + "</td>";
                         output += "<td dir='ltr'>" + respone[i]["version"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["minVersion"] + "</td>";
+                        output += "<td dir='ltr'>" + respone[i]["maxVersion"] + "</td>";
                         output += "<td dir='ltr'>" + respone[i]["cvss"] + "</td>";
                         output += "<td dir='ltr'>" + respone[i]["createdDate"] + "</td>";
                         output += "<td dir='ltr'>" + respone[i]["lastModifiedDate"] + "</td>";

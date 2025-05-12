@@ -7,15 +7,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.Date;
 import java.util.zip.DataFormatException;
 
 @Component
@@ -107,142 +105,86 @@ public class GetcveFromcore implements Runnable {
         try {
             distributionTypee = "package";
             if (distributionTypee.equals("package")) {
+                MyConnection = connection;
                 StringBuilder subQuery = new StringBuilder();
-                List<String> parameters = new ArrayList<>();
+                List<Object> parameters = new ArrayList<>();
 
                 for (int i = 0; i < split_package.length; i++) {
                     String pkg = split_package[i].replace("'", "").trim();
-                   String vv = (split_version.length > i) ? split_version[i].replace("'", "").trim() : "";
+                    String vv = (split_version.length > i) ? split_version[i].replace("'", "").trim() : "";
 
                     if (pkg.equals("#")) continue;
-                    if (pkg.equals("kernel")) pkg = "linux_kernel";
+                    if (pkg.equalsIgnoreCase("kernel")) pkg = "linux_kernel";
 
-                    if (Use_version == 0 || vv.equals("")) {
-                        subQuery.append("SELECT vulns_id, product_name, version FROM product WHERE product_name LIKE ? UNION ");
+                    // No version
+                    if (Use_version == 0 || vv.isEmpty()) {
+                        subQuery.append("SELECT vulns_id, product_name, version , minversion ,maxversion FROM product WHERE product_name LIKE ? UNION ");
                         parameters.add(pkg + "%");
-                    } else if (Use_version == 1) {
-                        subQuery.append("SELECT vulns_id, product_name, version FROM product WHERE product_name LIKE ? AND version = ? UNION ");
+                    }
+                    // Exact version match
+                    else if (Use_version == 2) {
+                        subQuery.append("SELECT vulns_id, product_name, version , minversion ,maxversion FROM product WHERE product_name LIKE ? AND version = ? UNION ");
                         parameters.add(pkg + "%");
                         parameters.add(vv);
-                    } else if (Use_version == 2) {
-                            subQuery.append(
-                                    "SELECT vulns_id, product_name, version, minversion, maxversion FROM product " +
-                                            "WHERE product_name LIKE ? AND (" +
-                                            "version LIKE ? OR " +
-                                            "((minversion IS NOT NULL AND minversion != '' AND ? >= minversion) " +
-                                            "AND (maxversion IS NOT NULL AND maxversion != '' AND ? <= maxversion))" +
-                                            ")" +
-                                            " UNION "
-                            );
-                            parameters.add(pkg + "%");
-                            parameters.add(vv);
-                            parameters.add(vv);
-                            parameters.add(vv);
+                    }
+                    // Range-based version match
+                    else if (Use_version == 1) {
+                        subQuery.append(
+                                "SELECT vulns_id, product_name, version , minversion ,maxversion FROM product " +
+                                        "WHERE product_name LIKE ? AND (" +
+                                        "version LIKE ? OR " +
+                                        "minversion LIKE ? OR " +
+                                        "maxversion LIKE ? OR " +
+                                        "(minversion IS NOT NULL AND minversion != '' AND maxversion IS NOT NULL AND maxversion != '' " +
+                                        "AND ? >= minversion AND ? <= maxversion)" +
+                                        ") UNION "
+                        );
+                        parameters.add(pkg + "%");
+                        parameters.add("%" + vv + "%");
+                        parameters.add("%" + vv + "%");
+                        parameters.add("%" + vv + "%");
+                        parameters.add(vv);
+                        parameters.add(vv);
                     }
                 }
 
-                String sub = subQuery.substring(0, subQuery.length() - 7);
-                String final_query = "SELECT t.*, p.product_name, p.version " +
+                if (subQuery.length() >= 7) {
+                    subQuery.setLength(subQuery.length() - 7);
+                }
+
+                String final_query = "SELECT t.*, p.product_name, p.version , p.minversion , p.maxversion " +
                         "FROM cve t " +
-                        "INNER JOIN (" + sub + ") p ON p.vulns_id = t.id " +
+                        "INNER JOIN (" + subQuery + ") p ON p.vulns_id = t.id " +
                         "WHERE updated_at > ? AND updated_at < ? " +
                         "ORDER BY cvss DESC";
 
-                parameters.add(String.valueOf(startint));
-                parameters.add(String.valueOf(finishint));
-                MyStatement1 = MyConnection.prepareStatement(final_query);
+                try (PreparedStatement stmt = MyConnection.prepareStatement(final_query)) {
+                    int index = 1;
+                    for (Object param : parameters) {
+                        stmt.setString(index++, param.toString());
+                    }
+                    stmt.setLong(index++, startint);
+                    stmt.setLong(index, finishint);
 
-                for (int i = 0; i < parameters.size(); i++) {
-                    MyStatement1.setString(i + 1, parameters.get(i));
+                    ResultSet r = stmt.executeQuery();
+
+                    System.out.println("Getting information, please wait...");
+                    ResultSetMetaData metaData = r.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+
+                    while (r.next()) {
+                        List<String> row = new ArrayList<>();
+                        for (int i = 1; i <= columnCount; i++) {
+                            row.add(r.getString(i));
+                        }
+                        resultrecods.add(row);
+                    }
+                    System.out.println("Collecting information done.");
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-
-                ResultSet r = MyStatement1.executeQuery();
-
             }
-            else {
 
-
-                int it = 0;
-                String subQuery = "";
-
-                /////////////////////// B: this section is add in version 4.4
-                for (int i = 0; i < split_package.length; i++) {
-                    String  vv = "";
-                    split_package[i] = split_package[i].replace("'", "");//B :this code was added to prevent sali
-
-
-                    if (split_version.length > i) {
-                        split_version[i] = split_version[i].replace("'", "");
-                        split_version[i] = split_version[i].replace(" ", "");
-                        vv = split_version[i];
-                        if (Use_version == 0) {
-                            split_version[i] = "";
-                        }
-                    }
-                    it = it + 1;
-                    flag = 0;
-                    if (split_package[i].equals("#")) {
-                        split_package[i] = "";
-
-                    }
-                    if (split_package[i].equals("kernel")) {
-                        split_package[i] = "linux_kernel";
-                    }
-                    if (!vv.equals("")) {
-                        if (vv.equals("*")) {
-                            vv = "";
-                        }
-                    }
-
-                    subQuery += "select id from lookups where type ='PCK' and val like '%" + split_package[i] + "%'" + " union";  //merge all queries in  one query   created by REza deHghani
-
-                }
-                subQuery = subQuery.substring(0, subQuery.length() - 5);   //this code remove last  union of  subquery
-                MyConnection = connection;
-                String final_query = "  select vulns.id,vulns.package,product.package_name,product.version from vulns,product,product_vulns where product_vulns.package_id=product.id and product_vulns.vulns_id=vulns.id    and  vulns.package in (" + subQuery + ") ";
-                MyStatement1 = MyConnection.prepareStatement(final_query);
-                PreparedStatement my = MyConnection.prepareStatement(final_query);
-                ResultSet r = MyStatement1.executeQuery();
-                String name = CreateName2(distro, distro);
-                boolean T = false;
-                System.out.println("getting information please wait....");
-
-                while (r.next()) {
-                    List<String> row = new ArrayList<String>();
-                    for (int i = 0; i <= 25; i++) {
-                        row.add(r.getString(i));
-                    }
-                    T = true;
-/*
-                    int idNumber = r.getInt("id");
-                    String packagename=r.getString("package_name");
-                    String version=r.getString("version");
-
-                    if (wholeIds.contains(idNumber)) {
-                        flag = 1;
-
-                        List<String> record = FillExcelRow(Integer.toString(idNumber),distro);
-                        if((!record.get(0).contains("Not Clear") && (!record.get(0).contains("vulnerability"))) )
-                        {
-                            record.add(packagename);
-                            record.add(version);
-                            resultrecods.add(record);
-
-                        }
-
-                    }
-*/
-
-                }
-
-                System.out.println("collecting information  done....");
-
-
-                if (flag == 1) {
-                }
-
-
-            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         } finally {
