@@ -6,6 +6,7 @@
 <head>
     <th:block th:replace="fragments/layout.html :: header"></th:block>
     <meta charset="UTF-8">
+
     <title>گزارش</title>
 
     <meta th:name="_csrf" th:content="${_csrf.token}"/>
@@ -151,6 +152,8 @@
                                 <option value="0">بازه -ورژن باید حتما وارد شود </option>
                                 <option value="2">  فیکس -ورژن باید حتما وارد شود  </option>
                                 <option value="1">خیر-ورژن در نظر گرفته نمیشود</option>
+                                <option value="3">همه</option>
+
                             </select>
                         </div>
 
@@ -213,6 +216,8 @@
 
                         </tbody>
                     </table>
+                    <div id="pagination-container" class="text-center mt-3"></div>
+
                 </div>
             </div>
         </div>
@@ -279,9 +284,14 @@
         initialValue: false
     });
 </script>
-<script>
-    function getData() {
 
+<script>
+    let fullData = [];
+    let currentPage = 1;
+    const rowsPerPage = 50;
+    const maxVisiblePages = 5;
+
+    function getData() {
         swal({
             title: "منتظر دریافت پاسخ از سرور ...",
             text: "لطفاً منتظر بمانید!",
@@ -289,11 +299,12 @@
             className: "swal-temp"
         });
 
-        var csrfToken = $("meta[name='_csrf']").attr("content");
-        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+        const csrfToken = $("meta[name='_csrf']").attr("content");
+        const csrfHeader = $("meta[name='_csrf_header']").attr("content");
+
         $.ajax({
             url: '[[@{/ordinary/report/reports-list}]]',
-            type: "post",
+            type: "POST",
             data: {
                 "usev": $("#input-search-usev").val(),
                 "startDate": $("#fromDate").val(),
@@ -301,99 +312,135 @@
                 "file": $("#textField").val(),
                 "_csrf": csrfToken
             },
-            async: true,
             beforeSend: function (xhr) {
                 xhr.setRequestHeader(csrfHeader, csrfToken);
             },
-            success: function (respone) {
-                var body = $('tbody');
-                var output = "";
-
-                if(isNaN(respone)){
-
-                    for (var i = 0; i < respone.length; i++) {
-
-                        output += "<tr dir='ltr'>";
-                        output += "<td dir='ltr'>" + i + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["cveName"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["packageName"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["product"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["version"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["minVersion"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["maxVersion"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["cvss"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["createdDate"] + "</td>";
-                        output += "<td dir='ltr'>" + respone[i]["lastModifiedDate"] + "</td>";
-                        output += "</tr>";
-                    }
+            success: function (response) {
+                if (isNaN(response)) {
+                    fullData = response;
+                    currentPage = 1;
+                    renderTablePage(currentPage);
                     swal.close();
-                }else if(typeof respone == 'number'){
+                } else {
                     swal.close();
+                    let msg = "";
 
-                    var msg = "";
-                    if(respone == -1){
-                        msg = " خطا در دریافت اطلاعات ";
+                    switch (response) {
+                        case -1: msg = "خطا در دریافت اطلاعات"; break;
+                        case 0: msg = "هیچ بسته‌ای وارد نشده است"; break;
+                        case 10: msg = "فرمت تاریخ اشتباه است؛ لطفاً به فرمت مشخص شده وارد شود"; break;
+                        case 70007: msg = "بسته‌ای یافت نشد"; break;
+                        default:
+                            msg = response < -1
+                                ? `خطا در خط ${Math.abs(response + 1)} بخش نام بسته‌ها: استفاده از کاراکتر غیر مجاز`
+                                : `خطا در خط ${response} بخش نام بسته‌ها`;
                     }
-                    else if(respone==0){
-                        msg = " هیچ بسته ای وارد نشده است ";
-
-                    }
-                    else if(respone==10)
-                    {
-                        msg = "فرمت تاریخ اشتباه است لطفا به فرمت مشخص شده وارد شود";
-
-                    }
-                    else if(respone==70007)
-                    {
-                        msg = "بسته ای یافت نشد";
-
-                    }
-                    else if(respone<-1)
-                    {
-                        msg = "خطا در خط ";
-                        respone=respone+1;
-                        respone=-respone;
-                        var m2 = respone;
-                        var m3 = "  بخش نام بسته ها رخ داده است. استفاده از کاراکتر غیر مجاز"
-                        msg = msg + m2 + m3;
-
-                    }
-                    else{
-                        msg = "خطا در خط ";
-                        var m2 = respone;
-                        var m3 = "  بخش نام بسته ها رخ داده است."
-                        msg = msg + m2 + m3;
-                    }
-
 
                     swal({
                         title: "خطا",
                         text: msg,
                         icon: "error",
-                        button: "تایید",
+                        button: "تأیید",
                         className: "swal-temp"
                     });
 
+                    $('tbody').html("");
+                    $('#pagination-container').html("");
                 }
-                body.html(output);
-                swal.close();
-
             },
-            error: function (respone) {
+            error: function () {
                 swal({
                     title: "خطا",
                     text: "خطا در دریافت اطلاعات",
                     icon: "error",
-                    button: "تایید",
+                    button: "تأیید",
                     className: "swal-temp"
                 });
             }
         });
     }
 
+    function renderTablePage(page) {
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pagedData = fullData.slice(start, end);
+        let output = "";
+
+        for (let i = 0; i < pagedData.length; i++) {
+            const item = pagedData[i];
+            output += `
+                <tr dir='ltr'>
+                    <td>${start + i + 1}</td>
+                    <td>${item.cveName || ''}</td>
+                    <td>${item.packageName || ''}</td>
+                    <td>${item.product || ''}</td>
+                    <td>${item.version || ''}</td>
+                    <td>${item.minVersion || ''}</td>
+                    <td>${item.maxVersion || ''}</td>
+                    <td>${item.cvss || ''}</td>
+                    <td>${item.createdDate || ''}</td>
+                    <td>${item.lastModifiedDate || ''}</td>
+                </tr>
+            `;
+        }
+
+        $('tbody').html(output);
+        renderPaginationControls();
+    }
+
+    function renderPaginationControls() {
+        const pageCount = Math.ceil(fullData.length / rowsPerPage);
+        let buttons = "";
+
+        if (pageCount <= 1) {
+            $('#pagination-container').html("");
+            return;
+        }
+
+        // Previous
+        if (currentPage > 1) {
+            buttons += `<button class="btn btn-outline-secondary m-1" onclick="changePage(${currentPage - 1})">قبلی</button>`;
+        }
+
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(pageCount, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 1) {
+            buttons += `<button class="btn btn-outline-primary m-1" onclick="changePage(1)">1</button>`;
+            if (startPage > 2) {
+                buttons += `<span class="m-1">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            buttons += `<button class="btn m-1 ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}" onclick="changePage(${i})">${i}</button>`;
+        }
+
+        if (endPage < pageCount) {
+            if (endPage < pageCount - 1) {
+                buttons += `<span class="m-1">...</span>`;
+            }
+            buttons += `<button class="btn btn-outline-primary m-1" onclick="changePage(${pageCount})">${pageCount}</button>`;
+        }
+
+        // Next
+        if (currentPage < pageCount) {
+            buttons += `<button class="btn btn-outline-secondary m-1" onclick="changePage(${currentPage + 1})">بعدی</button>`;
+        }
+
+        $('#pagination-container').html(buttons);
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        renderTablePage(page);
+    }
+
     $('#mngmt-vulns').next().removeClass('collapse');
-
-
 </script>
 <script th:if="${messageTitle != null}">
     swal({

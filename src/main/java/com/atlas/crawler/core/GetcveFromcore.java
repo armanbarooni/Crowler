@@ -147,7 +147,9 @@ public class GetcveFromcore implements Runnable {
                         parameters.add(vv);
                     }
                 }
-
+                if (Use_version == 3 ) {
+                    subQuery.append("SELECT vulns_id, product_name, version , minversion ,maxversion FROM product  UNION ");
+                }
                 if (subQuery.length() >= 7) {
                     subQuery.setLength(subQuery.length() - 7);
                 }
@@ -156,7 +158,7 @@ public class GetcveFromcore implements Runnable {
                         "FROM cve t " +
                         "INNER JOIN (" + subQuery + ") p ON p.vulns_id = t.id " +
                         "WHERE updated_at > ? AND updated_at < ? " +
-                        "ORDER BY cvss DESC";
+                        "ORDER BY cvss DESC , p.product_name ASC";
 
                 try (PreparedStatement stmt = MyConnection.prepareStatement(final_query)) {
                     int index = 1;

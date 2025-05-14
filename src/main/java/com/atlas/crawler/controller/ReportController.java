@@ -111,7 +111,7 @@ public class ReportController {
 
 
 
-            if(errorLineNumber==0){
+            if(errorLineNumber==0 && usev!=3){
                 return  0;
             }
 
@@ -171,7 +171,6 @@ public class ReportController {
         int line = 0;
         for (String st : packages) {
             if(st!="")
-
             {
                 line++;
                 int index = st.indexOf(" ");
