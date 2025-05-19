@@ -41,6 +41,8 @@ public class SupervisorController {
                           @RequestParam("usev") int usev,
                           @RequestParam("startDate") String startDate,
                           @RequestParam("endDate") String endDate,
+                           @RequestParam("page") int page,
+                           @RequestParam("size") int size ,
                           HttpServletResponse response) {
 
         try {
@@ -87,7 +89,7 @@ public class SupervisorController {
             if(errorLineNumber==0){
                 return  ;
             }
-            List<CVE> cves =  getCVEFromCore(packages, startDate, endDate, usev, distribution);
+            List<CVE> cves =  getCVEFromCore(packages, startDate, endDate, usev, distribution,page,size);
 
 
 
@@ -150,13 +152,13 @@ public class SupervisorController {
         return -1;
     }
 
-    private List<CVE> getCVEFromCore(List<String> packages, String startDate, String finishDate, int usev, String distributionType) throws InterruptedException, SQLException {
+    private List<CVE> getCVEFromCore(List<String> packages, String startDate, String finishDate, int usev, String distributionType, int page , int size) throws InterruptedException, SQLException {
 
         Connection connection = coreService.getConnection();
         ReportController report=new ReportController();
 
 
-        List<CVE> cves = report.getCVEFromCore(packages, startDate, finishDate, usev, distributionType,connection);
+        List<CVE> cves = report.getCVEFromCore(packages, startDate, finishDate, usev, distributionType,connection,page,size);
         return cves;
     }
 

@@ -30,6 +30,8 @@ public class ReportController {
     public static int processors_count = Runtime.getRuntime().availableProcessors();
     ExecutorService pool_thread = Executors.newFixedThreadPool(processors_count);
     public  static  List<CVE> cves=null;
+    public  static  int CountAll=0;
+
     public static String  startDatee, finishDatee , distributionTypee;
     public  static int usevv;
     public static List<String> packagess;
@@ -65,76 +67,68 @@ public class ReportController {
 
     @ResponseBody
     @PostMapping("/reports-list")
-    public Object findCVES(@RequestParam("file") String pkgs,
-
-                           @RequestParam("usev") int usev,
-                           @RequestParam("startDate") String startDate,
-                           @RequestParam("endDate") String endDate) {
-
+    public Object findCVES(
+            @RequestParam("file") String pkgs,
+            @RequestParam("usev") int usev,
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size
+    ) {
         try {
-              if (startDate == null || startDate == "") {
-                  startDate = "p";
-              }
-              else{
-
+            if (startDate == null || startDate.isEmpty()) {
+                startDate = "p";
+            } else {
                 startDate = startDate.replace("/", "-");
-            }  if (endDate == null || endDate =="") {
+            }
+
+            if (endDate == null || endDate.isEmpty()) {
                 endDate = "p";
-            }
-              else
-            {
+            } else {
                 endDate = endDate.replace("/", "-");
-
-
             }
+
             Connection connection = coreService.getConnection();
-            General general=new General(connection);
-            if(startDate!="p")
-            {
-                if(!general.isValidFormat("yyyy-MM-dd", startDate, Locale.ENGLISH)){
-                    return  10;
-                }
+            General general = new General(connection);
+
+            if (!"p".equals(startDate) && !general.isValidFormat("yyyy-MM-dd", startDate, Locale.ENGLISH)) {
+                return 10;
             }
-            if(endDate!="p")
-            {
-                if(!general.isValidFormat("yyyy-MM-dd", endDate, Locale.ENGLISH)){
-                    return  10;
-                }
+            if (!"p".equals(endDate) && !general.isValidFormat("yyyy-MM-dd", endDate, Locale.ENGLISH)) {
+                return 10;
             }
+
             List<String> packages = convertStringToList(pkgs);
-            int chekforblacklist=blaclist(packages);
-            if(chekforblacklist!=0)
-            {
-                return chekforblacklist;
+            int checkForBlacklist = blaclist(packages);
+            if (checkForBlacklist != 0) {
+                return checkForBlacklist;
             }
+
             Integer errorLineNumber = checkIntegrityPackages(packages);
-
-
-
-            if(errorLineNumber==0 && usev!=3){
-                return  0;
+            if (errorLineNumber == 0 && usev != 3) {
+                return 0;
             }
 
-            List<CVE> cves = getCVEFromCore(packages, startDate, endDate, usev, "",connection);
-            if(cves==null)
-            {
+            int totalCount = getCVECountFromCore(packages, startDate, endDate, usev, "",connection, page, size);
+
+            List<CVE> pagedCves = getCVEFromCore(packages, startDate, endDate, usev, "", connection, page, size);
+
+            if (pagedCves == null || pagedCves.isEmpty()) {
                 return 70007;
             }
-            if(cves!=null)
-            {
-                if(cves.size()==0)
-                {
-                    return 70007;
 
-                }
-            }
+            // ⬇️ ساختار خروجی شامل دیتا و اطلاعات صفحه‌بندی
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", pagedCves);
+            response.put("totalItems", totalCount);
+            response.put("totalPages", (int) Math.ceil((double) totalCount / size));
+            response.put("currentPage", page);
 
-            return cves;
+            return response;
+
         } catch (Exception e) {
             return -1;
         }
-
-
     }
 
 
@@ -186,7 +180,7 @@ public class ReportController {
         return -1;
     }
 
-    public List<CVE> getCVEFromCore(List<String> packages, String startDate, String finishDate, int usev, String distributionType,  Connection connection) throws InterruptedException, SQLException {
+    public List<CVE> getCVEFromCore(List<String> packages, String startDate, String finishDate, int usev, String distributionType,  Connection connection, int page , int size) throws InterruptedException, SQLException {
         Thread getpack=null;
 
         adapter_method="search";
@@ -198,6 +192,8 @@ public class ReportController {
         test.finishDatee=finishDate;
         test.startDatee=startDate;
         test.packagess=packages;
+        test.size=size;
+        test.page=page;
         if(getpack==null)
          getpack=new Thread(test);
 
@@ -207,11 +203,32 @@ public class ReportController {
         cves= test.return_result();
         connection.close();
 
-
-
-        //  getpack.
-
         return cves;
+    }
+    public int getCVECountFromCore(List<String> packages, String startDate, String finishDate, int usev, String distributionType,  Connection connection, int page , int size) throws InterruptedException, SQLException {
+        Thread getpack=null;
+
+        adapter_method="search";
+
+        packagess=packages;
+        GetcveFromcore test=new GetcveFromcore(connection);
+        test.usevv=usev;
+        test.distributionTypee=distributionType;
+        test.finishDatee=finishDate;
+        test.startDatee=startDate;
+        test.packagess=packages;
+        test.size=size;
+        test.page=page;
+        if(getpack==null)
+            getpack=new Thread(test);
+
+        getpack.setName("getpackone");
+        getpack.start();
+
+        CountAll= test.return_Count();
+        connection.close();
+
+        return CountAll;
     }
 
     @GetMapping("/charts")

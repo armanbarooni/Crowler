@@ -305,13 +305,16 @@
         $.ajax({
             url: '[[@{/ordinary/report/reports-list}]]',
             type: "POST",
-            data: {
-                "usev": $("#input-search-usev").val(),
-                "startDate": $("#fromDate").val(),
-                "endDate": $("#toDate").val(),
-                "file": $("#textField").val(),
-                "_csrf": csrfToken
-            },
+                data: {
+                    "usev": $("#input-search-usev").val(),
+                    "startDate": $("#fromDate").val(),
+                    "endDate": $("#toDate").val(),
+                    "file": $("#textField").val(),
+                    "page": currentPage,
+                    "size": rowsPerPage,
+                    "_csrf": csrfToken
+                }
+                ,
             beforeSend: function (xhr) {
                 xhr.setRequestHeader(csrfHeader, csrfToken);
             },
