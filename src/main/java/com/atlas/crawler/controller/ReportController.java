@@ -111,6 +111,8 @@ public class ReportController {
 
             int totalCount = getCVECountFromCore(packages, startDate, endDate, usev, "",connection, page, size);
 
+             connection = coreService.getConnection();
+
             List<CVE> pagedCves = getCVEFromCore(packages, startDate, endDate, usev, "", connection, page, size);
 
             if (pagedCves == null || pagedCves.isEmpty()) {

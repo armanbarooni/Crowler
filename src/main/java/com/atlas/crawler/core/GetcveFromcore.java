@@ -98,6 +98,8 @@ public class GetcveFromcore implements Runnable {
 
         Collection<List<String>> resultrecods = new ArrayList<>();
         Connection MyConnection = null;
+        Connection MyConnection2 = null;
+
         int flag = 0;
         PreparedStatement MyStatement1 = null;
         String[] split_package = packageNames.split(",");
@@ -107,6 +109,7 @@ public class GetcveFromcore implements Runnable {
             distributionTypee = "package";
             if (distributionTypee.equals("package")) {
                 MyConnection = connection;
+
                 StringBuilder subQuery = new StringBuilder();
                 List<Object> parameters = new ArrayList<>();
 
@@ -154,7 +157,6 @@ public class GetcveFromcore implements Runnable {
                 if (subQuery.length() >= 7) {
                     subQuery.setLength(subQuery.length() - 7);
                 }
-                int offset = (page - 1) * size;
 
 
                 String counter = "SELECT COUNT(*) " +
@@ -162,15 +164,15 @@ public class GetcveFromcore implements Runnable {
                         "INNER JOIN (" + subQuery + ") p ON p.vulns_id = t.id " +
                         "WHERE updated_at > ? AND updated_at < ?";
 
-                try (PreparedStatement stmt = MyConnection.prepareStatement(counter)) {
+                try (PreparedStatement stmt2 = MyConnection.prepareStatement(counter)) {
                     int index = 1;
                     for (Object param : parameters) {
-                        stmt.setString(index++, param.toString());
+                        stmt2.setString(index++, param.toString());
                     }
-                    stmt.setLong(index++, startint);
-                    stmt.setLong(index, finishint);
+                    stmt2.setLong(index++, startint);
+                    stmt2.setLong(index, finishint);
 
-                    try (ResultSet rs = stmt.executeQuery()) {
+                    try (ResultSet rs = stmt2.executeQuery()) {
                         if (rs.next()) {
                             count = rs.getInt(1);
                         }
@@ -179,13 +181,14 @@ public class GetcveFromcore implements Runnable {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+                int offset = (page - 1) * size;
 
 
                 String final_query = "SELECT t.*, p.product_name, p.version , p.minversion , p.maxversion " +
                         "FROM cve t " +
                         "INNER JOIN (" + subQuery + ") p ON p.vulns_id = t.id " +
                         "WHERE updated_at > ? AND updated_at < ? " +
-                        "ORDER BY cvss DESC , p.product_name ASC" +
+                        "ORDER BY cvss DESC , p.product_name ASC " +
                         "LIMIT ? OFFSET ?";
 
 
@@ -195,7 +198,9 @@ public class GetcveFromcore implements Runnable {
                         stmt.setString(index++, param.toString());
                     }
                     stmt.setLong(index++, startint);
-                    stmt.setLong(index, finishint);
+                    stmt.setLong(index++, finishint);
+                    stmt.setLong(index++, size);
+                    stmt.setLong(index, offset);
 
                     ResultSet r = stmt.executeQuery();
 

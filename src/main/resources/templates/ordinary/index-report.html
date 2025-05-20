@@ -286,12 +286,13 @@
 </script>
 
 <script>
-    let fullData = [];
     let currentPage = 1;
     const rowsPerPage = 50;
     const maxVisiblePages = 5;
+    let totalPages = 0;
 
-    function getData() {
+    function getData(page = 1) {
+
         swal({
             title: "منتظر دریافت پاسخ از سرور ...",
             text: "لطفاً منتظر بمانید!",
@@ -305,50 +306,29 @@
         $.ajax({
             url: '[[@{/ordinary/report/reports-list}]]',
             type: "POST",
-                data: {
-                    "usev": $("#input-search-usev").val(),
-                    "startDate": $("#fromDate").val(),
-                    "endDate": $("#toDate").val(),
-                    "file": $("#textField").val(),
-                    "page": currentPage,
-                    "size": rowsPerPage,
-                    "_csrf": csrfToken
-                }
-                ,
+            data: {
+                "usev": $("#input-search-usev").val(),
+                "startDate": $("#fromDate").val(),
+                "endDate": $("#toDate").val(),
+                "file": $("#textField").val(),
+                "page": page,
+                "size": rowsPerPage,
+                "_csrf": csrfToken
+            },
             beforeSend: function (xhr) {
                 xhr.setRequestHeader(csrfHeader, csrfToken);
             },
             success: function (response) {
-                if (isNaN(response)) {
-                    fullData = response;
-                    currentPage = 1;
-                    renderTablePage(currentPage);
+                if (response.data && Array.isArray(response.data)) {
+                    currentPage = response.currentPage || 1;
+                    totalPages = response.totalPages || 1;
+
+                    renderTable(response.data);
+                    renderPaginationControls();
                     swal.close();
                 } else {
                     swal.close();
-                    let msg = "";
-
-                    switch (response) {
-                        case -1: msg = "خطا در دریافت اطلاعات"; break;
-                        case 0: msg = "هیچ بسته‌ای وارد نشده است"; break;
-                        case 10: msg = "فرمت تاریخ اشتباه است؛ لطفاً به فرمت مشخص شده وارد شود"; break;
-                        case 70007: msg = "بسته‌ای یافت نشد"; break;
-                        default:
-                            msg = response < -1
-                                ? `خطا در خط ${Math.abs(response + 1)} بخش نام بسته‌ها: استفاده از کاراکتر غیر مجاز`
-                                : `خطا در خط ${response} بخش نام بسته‌ها`;
-                    }
-
-                    swal({
-                        title: "خطا",
-                        text: msg,
-                        icon: "error",
-                        button: "تأیید",
-                        className: "swal-temp"
-                    });
-
-                    $('tbody').html("");
-                    $('#pagination-container').html("");
+                    showError(response);
                 }
             },
             error: function () {
@@ -363,17 +343,39 @@
         });
     }
 
-    function renderTablePage(page) {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        const pagedData = fullData.slice(start, end);
+    function showError(response) {
+        let msg = "";
+        switch (response) {
+            case -1: msg = "خطا در دریافت اطلاعات"; break;
+            case 0: msg = "هیچ بسته‌ای وارد نشده است"; break;
+            case 10: msg = "فرمت تاریخ اشتباه است؛ لطفاً به فرمت مشخص شده وارد شود"; break;
+            case 70007: msg = "بسته‌ای یافت نشد"; break;
+            default:
+                msg = response < -1
+                    ? `خطا در خط ${Math.abs(response + 1)} بخش نام بسته‌ها: استفاده از کاراکتر غیر مجاز`
+                    : `خطا در خط ${response} بخش نام بسته‌ها`;
+        }
+
+        swal({
+            title: "خطا",
+            text: msg,
+            icon: "error",
+            button: "تأیید",
+            className: "swal-temp"
+        });
+
+        $('tbody').html("");
+        $('#pagination-container').html("");
+    }
+
+    function renderTable(data) {
         let output = "";
 
-        for (let i = 0; i < pagedData.length; i++) {
-            const item = pagedData[i];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
             output += `
                 <tr dir='ltr'>
-                    <td>${start + i + 1}</td>
+                    <td>${(currentPage - 1) * rowsPerPage + i + 1}</td>
                     <td>${item.cveName || ''}</td>
                     <td>${item.packageName || ''}</td>
                     <td>${item.product || ''}</td>
@@ -388,62 +390,56 @@
         }
 
         $('tbody').html(output);
-        renderPaginationControls();
     }
 
     function renderPaginationControls() {
-        const pageCount = Math.ceil(fullData.length / rowsPerPage);
         let buttons = "";
 
-        if (pageCount <= 1) {
+        if (totalPages <= 1) {
             $('#pagination-container').html("");
             return;
         }
 
-        // Previous
         if (currentPage > 1) {
-            buttons += `<button class="btn btn-outline-secondary m-1" onclick="changePage(${currentPage - 1})">قبلی</button>`;
+            buttons += `<button class="btn btn-outline-secondary m-1" onclick="getData(${currentPage - 1})">قبلی</button>`;
         }
 
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(pageCount, startPage + maxVisiblePages - 1);
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
         if (endPage - startPage < maxVisiblePages - 1) {
             startPage = Math.max(1, endPage - maxVisiblePages + 1);
         }
 
         if (startPage > 1) {
-            buttons += `<button class="btn btn-outline-primary m-1" onclick="changePage(1)">1</button>`;
+            buttons += `<button class="btn btn-outline-primary m-1" onclick="getData(1)">1</button>`;
             if (startPage > 2) {
                 buttons += `<span class="m-1">...</span>`;
             }
         }
 
         for (let i = startPage; i <= endPage; i++) {
-            buttons += `<button class="btn m-1 ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}" onclick="changePage(${i})">${i}</button>`;
+            buttons += `<button class="btn m-1 ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}" onclick="getData(${i})">${i}</button>`;
         }
 
-        if (endPage < pageCount) {
-            if (endPage < pageCount - 1) {
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
                 buttons += `<span class="m-1">...</span>`;
             }
-            buttons += `<button class="btn btn-outline-primary m-1" onclick="changePage(${pageCount})">${pageCount}</button>`;
+            buttons += `<button class="btn btn-outline-primary m-1" onclick="getData(${totalPages})">${totalPages}</button>`;
         }
 
-        // Next
-        if (currentPage < pageCount) {
-            buttons += `<button class="btn btn-outline-secondary m-1" onclick="changePage(${currentPage + 1})">بعدی</button>`;
+        if (currentPage < totalPages) {
+            buttons += `<button class="btn btn-outline-secondary m-1" onclick="getData(${currentPage + 1})">بعدی</button>`;
         }
 
         $('#pagination-container').html(buttons);
     }
 
-    function changePage(page) {
-        currentPage = page;
-        renderTablePage(page);
-    }
-
-    $('#mngmt-vulns').next().removeClass('collapse');
+    // برای بارگزاری اولیه
+    $(document).ready(function () {
+        $('#mngmt-vulns').next().removeClass('collapse');
+    });
 </script>
 <script th:if="${messageTitle != null}">
     swal({
